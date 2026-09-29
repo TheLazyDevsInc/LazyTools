@@ -147,8 +147,8 @@ test('history shows two people in time order', async () => {
   $('q1b-save').click(); await settle();
   const items = [...$('q1b-hist').querySelectorAll('li')].map((li) => li.textContent);
   assert.equal(items.length, 2);
-  assert.ok(items[0].startsWith('Pat chose "Retry only once."'), items[0]);
-  assert.ok(items[1].startsWith('Me changed "Retry only once." → "Retry up to 3 times."'), items[1]);
+  assert.ok(items[0].startsWith('Pat chose “Retry only once.”'), items[0]);
+  assert.ok(items[1].startsWith('Me changed “Retry only once.” → “Retry up to 3 times.”'), items[1]);
   assert.ok($('q1b-hist').querySelector('summary').textContent === 'History (2)');
   assert.ok($('q1b-hist').closest('.part').querySelector('.who').textContent.includes('changed 1×'));
 });
