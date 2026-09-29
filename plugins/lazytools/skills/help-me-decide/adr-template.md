@@ -18,7 +18,14 @@ what is measured, not what is guessed. Say what is out of scope and why.}}
 | Q1 (#123) | {{question}} | {{chosen option}} | **Answered** by {{name}}, {{date}} |
 | Q2 (#124) | {{question}} | {{default option}} | **Default applied.** Not answered by {{deadline}}. |
 
-Mark every row **Answered** or **Default applied**. Never present a default as a decision someone made.
+Mark every row **Answered**, **Changed (N×)**, **Default applied** or **Unanswered**. Never present a default as a decision someone made.
+
+## Changes
+
+{{One line per change, in time order, from the page's change log. Name only, never email.}}
+
+- Q1 (#123): '{{from}}' → '{{to}}', by {{name}}, {{date and time with timezone}}.
+- {{or "No answer was changed." or "No change history recorded (page older than 0.3.0)."}}
 
 ## Options considered
 
@@ -49,4 +56,5 @@ Mark every row **Answered** or **Default applied**. Never present a default as a
 
 - Question page: {{artifact URL}}
 - Raw answers: read from the artifact `answers` collection on {{date}}; saved to {{path or "not saved"}}.
+- Change log: read from the artifact `audit` collection on {{date}}. {{Any answer marked "not in the log", or any `by` that differs from the log author, or "All answers match the log."}}
 - Open questions left unanswered: {{list with issue numbers, or "none"}}
