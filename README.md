@@ -31,6 +31,10 @@ Then install the plugin, in the form `plugin@marketplace`:
 
 The marketplace `thelazydevs` can hold more plugins. Make `plugins/<name>/` with its own `.claude-plugin/plugin.json`, then add an entry to `.claude-plugin/marketplace.json` with `"source": "./plugins/<name>"`.
 
+## Development
+
+Run `npm install` once, then `npm test`. The test loads `template.html` in jsdom with the sample questions and checks that the cards render.
+
 ## Licence
 
 MIT. See `LICENSE`. Copyright (c) 2026 The LazyDevs Inc.
