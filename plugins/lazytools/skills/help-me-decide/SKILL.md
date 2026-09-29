@@ -15,6 +15,12 @@ Files in this skill (read them from the skill folder):
 - `template.html`: the page. Fill the placeholders and the `Q` array. Do not redesign it.
 - `adr-template.md`: the ADR format. If the project already has a `docs/adr/` folder, copy its numbering, headings and tone instead, and use this file only where the project has no format.
 
+## Step 0: Is this a real decision, and do you have the inputs?
+
+Gate: a real decision has an owner, a cost if wrong, and a source (issue, chat or notes). If the question is personal, trivial or has no owner and no source (for example "vanilla or chocolate?"), stop. Say so, give the short answer if asked, and do not build a page or ADR unless the user says it is a test.
+
+Intake: if the user gave no questions or sources, ask for four things before anything else: (1) the sources (issue numbers, chat export or notes file), (2) the decision owner and their timezone and locale, (3) the real deadline, (4) the tracker repo or "none". Do not invent any of them.
+
 ## Phase 1: build and publish the question page
 
 1. **Find what is really open.** For every candidate question:
@@ -36,7 +42,7 @@ Files in this skill (read them from the skill folder):
    - Replace `{{TIMEZONE}}` (an IANA name such as `Asia/Kolkata` or `Europe/London`), `{{TZ_LABEL}}` (for example `IST`) and `{{LOCALE}}` (for example `en-IN` or `en-GB`) with the values the decision owner uses. They format the "Saved by … at …" line.
    - Replace the two example entries in `Q`. Keep part ids unique and made of letters and digits.
    - Check real dates with `date`. Never guess a weekday.
-4. **Publish.** Before writing, load the `artifact-design` and `artifact-capabilities` skills. Publish with the Artifact tool and `capabilities: {"db": {}, "user": {"scopes": ["profile"]}}`. To change an existing page, read it first and pass its `url`. Answers save to the `answers` collection, one document per part id.
+4. **Publish.** Run `node check.mjs <filled-page.html>` from the skill folder. Fix every failure before you publish. Before writing, load the `artifact-design` and `artifact-capabilities` skills. Publish with the Artifact tool and `capabilities: {"db": {}, "user": {"scopes": ["profile"]}}`. To change an existing page, read it first and pass its `url`. Answers save to the `answers` collection, one document per part id.
 5. **Tell the user how to share it.** The owner of the decisions must have Contributor or Editor access. With Viewer or Commenter access the page shows "You can read but not save".
 6. **Check once.** Read the `answers` collection with `ArtifactData` (`action: list`). It should be empty. Say what you could not test: a real tap needs a signed-in viewer.
 7. **Send the link and the deadline** to the decision owner. If they do not use the tool, prepare a short message for the user to forward.
@@ -58,6 +64,7 @@ Files in this skill (read them from the skill folder):
 
 ## Rules
 
+- Run Step 0 first. Stop if the question is not a real decision.
 - Push back on the user's question list when a question is already answered, belongs to someone else, or has more than four options. Say so before you build.
 - Do not invent answers. Do not record an option nobody chose.
 - Do not overwrite an existing page or ADR without saying so. Artifact versions are kept, so a replace is reversible, but say it.

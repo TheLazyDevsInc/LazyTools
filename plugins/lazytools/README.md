@@ -42,6 +42,8 @@ The skill:
 | `skills/help-me-decide/SKILL.md` | The workflow and its rules |
 | `skills/help-me-decide/template.html` | The multiple-choice page |
 | `skills/help-me-decide/adr-template.md` | The ADR layout |
+| `skills/help-me-decide/check.mjs` | Checks the filled page before publish |
+| `skills/help-me-decide/examples/` | A filled question set and a finished ADR |
 
 ### Privacy
 
