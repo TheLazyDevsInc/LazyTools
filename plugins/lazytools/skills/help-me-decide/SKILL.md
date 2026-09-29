@@ -42,7 +42,7 @@ Intake: if the user gave no questions or sources, ask for four things before any
    - Replace `{{TIMEZONE}}` (an IANA name such as `Asia/Kolkata` or `Europe/London`), `{{TZ_LABEL}}` (for example `IST`) and `{{LOCALE}}` (for example `en-IN` or `en-GB`) with the values the decision owner uses. They format the "Saved by … at …" line.
    - Replace the two example entries in `Q`. Keep part ids unique and made of letters and digits.
    - Check real dates with `date`. Never guess a weekday.
-4. **Publish.** Before writing, load the `artifact-design` and `artifact-capabilities` skills. Publish with the Artifact tool and `capabilities: {"db": {}, "user": {"scopes": ["profile"]}}`. To change an existing page, read it first and pass its `url`. Answers save to the `answers` collection, one document per part id.
+4. **Publish.** Run `node check.mjs <filled-page.html>` from the skill folder. Fix every failure before you publish. Before writing, load the `artifact-design` and `artifact-capabilities` skills. Publish with the Artifact tool and `capabilities: {"db": {}, "user": {"scopes": ["profile"]}}`. To change an existing page, read it first and pass its `url`. Answers save to the `answers` collection, one document per part id.
 5. **Tell the user how to share it.** The owner of the decisions must have Contributor or Editor access. With Viewer or Commenter access the page shows "You can read but not save".
 6. **Check once.** Read the `answers` collection with `ArtifactData` (`action: list`). It should be empty. Say what you could not test: a real tap needs a signed-in viewer.
 7. **Send the link and the deadline** to the decision owner. If they do not use the tool, prepare a short message for the user to forward.
