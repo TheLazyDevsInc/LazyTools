@@ -161,6 +161,7 @@ footer{color:var(--muted);font-size:14px;display:grid;gap:4px}
   var db=null,user=null,uid=null,readOnly=false;
   var answers={},audits={},names={},parts={},editing={},busy={},unlogged=[];
   var logQueue=Promise.resolve();
+  var kbd={},kbdPick={};
   function el(tag,cls,text){var e=document.createElement(tag);if(cls)e.className=cls;if(text!=null)e.textContent=text;return e;}
   function btn(id,cls,text){var b=el('button','btn'+(cls?' '+cls:''),text);b.type='button';b.id=id;b.hidden=true;return b;}
   var groupOf={};GROUPS.forEach(function(g){groupOf[g.id]=g;});
@@ -212,6 +213,7 @@ footer{color:var(--muted);font-size:14px;display:grid;gap:4px}
         card.appendChild(wrap);
         parts[p.id]={q:q,p:p,defId:defId,el:wrap};
         fs.addEventListener('change',function(ev){if(ev.target&&ev.target.type==='radio')onPick(p.id,ev.target.value);});
+        fs.addEventListener('keydown',function(ev){if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].indexOf(ev.key)>=0)kbd[p.id]=true;});
         $(p.id+'-othertext').addEventListener('input',function(){paint();});
         note.addEventListener('input',function(){paint();});
         $(p.id+'-save').addEventListener('click',function(){commit(p.id,state(p.id)==='changing'?'change':'answer');});
@@ -233,7 +235,7 @@ footer{color:var(--muted);font-size:14px;display:grid;gap:4px}
     var c=parts[pid].el.querySelector('input[type=radio]:checked');
     var choice=c?c.value:'',label='';
     if(c){var lb=c.parentNode.querySelector('.lbl span');label=lb?lb.textContent:'';}
-    return {choice:choice,label:label,other:$(pid+'-othertext').value.trim(),note:$(pid+'-note').value.trim()};
+    return {choice:choice,label:label,other:choice==='other'?$(pid+'-othertext').value.trim():'',note:$(pid+'-note').value.trim()};
   }
   function fill(pid,a){
     var s=snap(a);
@@ -251,7 +253,10 @@ footer{color:var(--muted);font-size:14px;display:grid;gap:4px}
 
   function onPick(pid,val){
     msg(pid,'');
-    if(state(pid)==='open'&&val!=='other'){commit(pid,'answer');return;}
+    if(state(pid)==='open'&&val!=='other'){
+      if(kbd[pid]){kbd[pid]=false;kbdPick[pid]=true;paint();return;}
+      commit(pid,'answer');return;
+    }
     if(val==='other')$(pid+'-othertext').focus();
     paint();
   }
@@ -260,7 +265,7 @@ footer{color:var(--muted);font-size:14px;display:grid;gap:4px}
     editing[pid]={rev:(answers[pid]&&answers[pid].rev)||''};
     fill(pid,answers[pid]);msg(pid,'');paint();
   }
-  function cancelChange(pid){delete editing[pid];fill(pid,answers[pid]);msg(pid,'');paint();}
+  function cancelChange(pid){delete editing[pid];delete kbdPick[pid];fill(pid,answers[pid]);msg(pid,'');paint();}
 
   async function commit(pid,action,given){
     if(busy[pid]||!db||readOnly)return;
@@ -274,6 +279,7 @@ footer{color:var(--muted);font-size:14px;display:grid;gap:4px}
         var cur=null;
         try{var s=await db.doc('answers/'+pid).get();cur=s.exists?s.data():null;}
         catch(e){msg(pid,'Could not check the saved answer ('+errCode(e)+'). Try again.');return;}
+        if(!editing[pid])return;
         var curRev=(cur&&cur.rev)||'';
         if(curRev!==editing[pid].rev){
           if(cur)answers[pid]=cur;
@@ -288,7 +294,7 @@ footer{color:var(--muted);font-size:14px;display:grid;gap:4px}
       var body={n:P.q.n,part:pid,choice:d.choice,label:d.label,other:d.other,note:d.note,by:uid||'',at:ev.at,viaDefault:action==='default',rev:ev.id};
       try{await db.doc('answers/'+pid).set(body);}
       catch(e){msg(pid,'Could not save ('+errCode(e)+'). Check your access and try again.');return;}
-      answers[pid]=body;delete editing[pid];msg(pid,'');paint();
+      answers[pid]=body;delete editing[pid];delete kbdPick[pid];msg(pid,'');paint();
       log(ev);
     }finally{busy[pid]=false;}
   }
@@ -340,9 +346,9 @@ footer{color:var(--muted);font-size:14px;display:grid;gap:4px}
       P.el.querySelectorAll('input[type=radio]').forEach(function(r){r.disabled=frozen;r.parentNode.classList.toggle('sel',r.checked);});
       ot.disabled=frozen;nt.disabled=frozen;
       var cur=collect(pid),sv=$(pid+'-save');
-      sv.hidden=!(st==='changing'||(st==='open'&&cur.choice==='other'));
+      sv.hidden=!(st==='changing'||(st==='open'&&(cur.choice==='other'||kbdPick[pid])));
       sv.textContent=st==='changing'?'Save change':'Save';
-      sv.disabled=st==='changing'?same(snap(a),cur):!cur.other;
+      sv.disabled=st==='changing'?same(snap(a),cur):(cur.choice==='other'?!cur.other:false);
       $(pid+'-change').hidden=st!=='locked';
       $(pid+'-cancel').hidden=st!=='changing';
       var evs=eventsFor(pid),changes=evs.filter(function(x){return x.e.action==='change';}).length;

@@ -203,3 +203,40 @@ test("a teammate's answer locks an open part", async () => {
   assert.ok(!$('q1a-change').hidden);
   assert.ok($('q1a-cancel').hidden, 'change mode must not open by itself');
 });
+
+test('other text is not saved with a normal option', async () => {
+  const { $, fake, type } = await load();
+  type('q1a-othertext', 'stale');
+  $('q1a-yes').click(); await settle();
+  const a = fake.store.get('answers/q1a');
+  assert.equal(a.other, '', 'answer.other must be empty when a normal option is saved');
+  const log = events(fake);
+  assert.equal(log[0].to.other, '', 'logged event.to.other must be empty');
+});
+
+test('Cancel during Save change does not throw or write', async () => {
+  const { $, fake, errors } = await load();
+  $('q1a-yes').click(); await settle();
+  const n = fake.writes.length;
+  $('q1a-change').click(); await settle();
+  $('q1a-no').click(); await settle();
+  $('q1a-save').click();
+  $('q1a-cancel').click();
+  await settle();
+  noErrors(errors);
+  assert.equal(events(fake).length, 1, 'must not write to audit');
+  assert.equal(fake.store.get('answers/q1a').choice, 'yes', 'must keep original answer');
+});
+
+test('arrow keys select without saving', async () => {
+  const { $, dom, fake } = await load();
+  $('q1b-three').dispatchEvent(new dom.window.KeyboardEvent('keydown', { key: 'ArrowDown', bubbles: true }));
+  $('q1b-three').checked = true;
+  $('q1b-three').dispatchEvent(new dom.window.Event('change', { bubbles: true }));
+  await settle();
+  assert.equal(fake.store.get('answers/q1b'), undefined, 'arrow key selection must not save');
+  assert.ok(!$('q1b-save').hidden, 'Save button must show after keyboard selection');
+  assert.ok(!$('q1b-save').disabled, 'Save button must be enabled after keyboard selection');
+  $('q1b-save').click(); await settle();
+  assert.equal(fake.store.get('answers/q1b').choice, 'three', 'explicit Save must save the keyboard-selected choice');
+});
