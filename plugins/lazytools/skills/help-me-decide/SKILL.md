@@ -44,7 +44,7 @@ Intake: if the user gave no questions or sources, ask for four things before any
    - Check real dates with `date`. Never guess a weekday.
 4. **Publish.** Run `node check.mjs <filled-page.html>` from the skill folder. Fix every failure before you publish. Before writing, load the `artifact-design` and `artifact-capabilities` skills. Publish with the Artifact tool and `capabilities: {"db": {}, "user": {"scopes": ["profile"]}}`. To change an existing page, read it first and pass its `url`. Answers save to the `answers` collection, one document per part id.
 5. **Tell the user how to share it.** The owner of the decisions must have Contributor or Editor access. With Viewer or Commenter access the page shows "You can read but not save".
-6. **Check once.** Read the `answers` collection with `ArtifactData` (`action: list`). It should be empty. Say what you could not test: a real tap needs a signed-in viewer.
+6. **Check once.** Read the `answers` collection with `ArtifactData` (`action: list`). It should be empty. Ask the user to open the page. The count must read "0 of N answered", where N is the number of parts. "0 of 0" means the page script failed. Say what you could not test: a real tap needs a signed-in viewer.
 7. **Send the link and the deadline** to the decision owner. If they do not use the tool, prepare a short message for the user to forward.
 
 ## Phase 2: read the answers and write the ADR
