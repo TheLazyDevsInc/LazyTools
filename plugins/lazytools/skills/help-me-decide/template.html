@@ -81,6 +81,17 @@ section{display:grid;gap:16px}
 .done{display:grid;gap:8px;border:1px dashed var(--line);border-radius:12px;padding:14px 16px}
 :focus-visible{outline:3px solid var(--teal);outline-offset:2px}
 footer{color:var(--muted);font-size:14px;display:grid;gap:4px}
+.btn:disabled{opacity:.5;cursor:not-allowed;filter:none}
+.pbar{display:flex;flex-wrap:wrap;gap:8px}
+.pbar .btn{min-height:40px;padding:10px 14px}
+.opt:has(input:disabled){cursor:default}
+.opt:has(input:disabled):hover{border-color:var(--line)}
+.opt.sel:has(input:disabled):hover{border-color:var(--ok)}
+.pmsg{font-size:14px;color:var(--chg);font-weight:700}
+.pmsg:empty{display:none}
+.hist{font-size:14px;color:var(--muted)}
+.hist summary{cursor:pointer;font-weight:700}
+.hist ol{margin:6px 0 0;padding-left:20px;display:grid;gap:4px}
 </style>
 
 <div class="wrap">
@@ -99,9 +110,13 @@ footer{color:var(--muted);font-size:14px;display:grid;gap:4px}
       <button class="btn ghost" id="accdef" type="button">Use the default for every open question that needs an answer soon</button>
     </div>
     <div class="meter" aria-hidden="true"><i id="meter"></i></div>
-    <span class="sub">Tap a choice to save it. You can change it any time. Add a note if a choice needs a detail.</span>
+    <span class="sub">Tap a choice to save and lock it. To change it later, press Change answer. Type a note before you tap if a choice needs a detail.</span>
   </div>
   <div id="banner" hidden></div>
+  <div id="logwarn" class="banner warn" hidden>
+    <span>Answer saved, but the change log entry failed.</span>
+    <button class="btn ghost" id="retrylog" type="button">Retry log</button>
+  </div>
   <div id="groups" class="qgroup"></div>
   <!-- Optional: questions already decided, so nobody asks them twice. One .row per item. -->
   <div class="done">
@@ -143,8 +158,11 @@ footer{color:var(--muted);font-size:14px;display:grid;gap:4px}
   ];
 
   var $=function(i){return document.getElementById(i);};
-  var db=null,user=null,uid=null,readOnly=false,answers={},names={},parts={},queue={},timers={};
+  var db=null,user=null,uid=null,readOnly=false;
+  var answers={},audits={},names={},parts={},editing={},busy={},unlogged=[];
+  var logQueue=Promise.resolve();
   function el(tag,cls,text){var e=document.createElement(tag);if(cls)e.className=cls;if(text!=null)e.textContent=text;return e;}
+  function btn(id,cls,text){var b=el('button','btn'+(cls?' '+cls:''),text);b.type='button';b.id=id;b.hidden=true;return b;}
   var groupOf={};GROUPS.forEach(function(g){groupOf[g.id]=g;});
 
   function build(){
@@ -181,61 +199,163 @@ footer{color:var(--muted);font-size:14px;display:grid;gap:4px}
         wrap.appendChild(fs);
         var note=document.createElement('textarea');note.className='txt';note.id=p.id+'-note';note.rows=2;note.placeholder='Note (optional)';note.setAttribute('aria-label','Note');
         wrap.appendChild(note);
-        wrap.appendChild(el('span','who',''));
+        var bar=el('div','pbar');
+        bar.appendChild(btn(p.id+'-save','','Save'));
+        bar.appendChild(btn(p.id+'-change','ghost','Change answer'));
+        bar.appendChild(btn(p.id+'-cancel','ghost','Cancel'));
+        wrap.appendChild(bar);
+        var who=el('span','who','');who.setAttribute('aria-live','polite');wrap.appendChild(who);
+        var m=el('span','pmsg','');m.id=p.id+'-msg';m.setAttribute('role','status');wrap.appendChild(m);
+        var hist=el('details','hist');hist.id=p.id+'-hist';hist.hidden=true;
+        hist.appendChild(el('summary',null,'History (0)'));hist.appendChild(el('ol'));
+        wrap.appendChild(hist);
         card.appendChild(wrap);
         parts[p.id]={q:q,p:p,defId:defId,el:wrap};
-        fs.addEventListener('change',function(ev){if(ev.target&&ev.target.type==='radio')save(p.id,true);});
-        $(p.id+'-othertext').addEventListener('input',function(){later(p.id);});
-        note.addEventListener('input',function(){later(p.id);});
+        fs.addEventListener('change',function(ev){if(ev.target&&ev.target.type==='radio')onPick(p.id,ev.target.value);});
+        $(p.id+'-othertext').addEventListener('input',function(){paint();});
+        note.addEventListener('input',function(){paint();});
+        $(p.id+'-save').addEventListener('click',function(){commit(p.id,state(p.id)==='changing'?'change':'answer');});
+        $(p.id+'-change').addEventListener('click',function(){startChange(p.id);});
+        $(p.id+'-cancel').addEventListener('click',function(){cancelChange(p.id);});
       });
       if(q.parts.every(function(p){return p.nodef;}))card.appendChild(el('p','nodef','No default. We wait for your answer.'));
     });
   }
 
-  function later(pid){clearTimeout(timers[pid]);timers[pid]=setTimeout(function(){save(pid,false);},700);}
+  function state(pid){
+    if(readOnly||!db)return 'ro';
+    if(editing[pid])return 'changing';
+    var a=answers[pid];return a&&a.choice?'locked':'open';
+  }
+  function snap(a){a=a||{};return {choice:a.choice||'',label:a.label||'',other:a.other||'',note:a.note||''};}
+  function same(a,b){return a.choice===b.choice&&a.other===b.other&&a.note===b.note;}
   function collect(pid){
     var c=parts[pid].el.querySelector('input[type=radio]:checked');
     var choice=c?c.value:'',label='';
     if(c){var lb=c.parentNode.querySelector('.lbl span');label=lb?lb.textContent:'';}
     return {choice:choice,label:label,other:$(pid+'-othertext').value.trim(),note:$(pid+'-note').value.trim()};
   }
+  function fill(pid,a){
+    var s=snap(a);
+    parts[pid].el.querySelectorAll('input[type=radio]').forEach(function(r){r.checked=(r.value===s.choice);});
+    $(pid+'-othertext').value=s.other;$(pid+'-note').value=s.note;
+  }
+  function msg(pid,t){$(pid+'-msg').textContent=t;}
+  function nameOf(id){return (id&&names[id])||'Someone';}
+  function newId(){return 'e_'+Date.now().toString(36)+Math.random().toString(36).slice(2,8);}
+  function errCode(e){return e&&e.code?e.code:'error';}
   function banner(kind,text){var b=$('banner');b.className='banner '+kind;b.textContent=text;b.hidden=false;}
-  function write(pid,data){
-    if(!db||readOnly)return Promise.resolve();
-    var body={n:parts[pid].q.n,part:pid,choice:data.choice,label:data.label,other:data.other,note:data.note,by:uid||'',at:Date.now(),viaDefault:!!data.viaDefault};
-    queue[pid]=(queue[pid]||Promise.resolve()).then(function(){return db.doc('answers/'+pid).set(body);}).catch(function(e){banner('warn','Could not save one answer ('+(e&&e.code?e.code:'error')+'). Check your access and try again.');});
-    return queue[pid];
-  }
-  function save(pid,fromRadio){
-    var d=collect(pid);
-    if(!d.choice&&!d.other&&!d.note)return;
-    if(d.choice==='other'&&!d.other&&fromRadio){$(pid+'-othertext').focus();}
-    write(pid,d);
-  }
   function when(ms){
     try{return new Date(ms).toLocaleString('{{LOCALE}}',{timeZone:'{{TIMEZONE}}',day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})+' {{TZ_LABEL}}';}catch(e){return '';}
   }
+
+  function onPick(pid,val){
+    msg(pid,'');
+    if(state(pid)==='open'&&val!=='other'){commit(pid,'answer');return;}
+    if(val==='other')$(pid+'-othertext').focus();
+    paint();
+  }
+  function startChange(pid){
+    if(state(pid)!=='locked')return;
+    editing[pid]={rev:(answers[pid]&&answers[pid].rev)||''};
+    fill(pid,answers[pid]);msg(pid,'');paint();
+  }
+  function cancelChange(pid){delete editing[pid];fill(pid,answers[pid]);msg(pid,'');paint();}
+
+  async function commit(pid,action,given){
+    if(busy[pid]||!db||readOnly)return;
+    var P=parts[pid],d=given||collect(pid);
+    if(!d.choice)return;
+    if(d.choice==='other'&&!d.other){msg(pid,'Type your answer, then press '+(action==='change'?'Save change':'Save')+'.');$(pid+'-othertext').focus();return;}
+    busy[pid]=true;
+    try{
+      var prev=null;
+      if(action==='change'){
+        var cur=null;
+        try{var s=await db.doc('answers/'+pid).get();cur=s.exists?s.data():null;}
+        catch(e){msg(pid,'Could not check the saved answer ('+errCode(e)+'). Try again.');return;}
+        var curRev=(cur&&cur.rev)||'';
+        if(curRev!==editing[pid].rev){
+          if(cur)answers[pid]=cur;
+          editing[pid].rev=curRev;
+          msg(pid,nameOf(cur&&cur.by)+' changed this answer while you were editing. Check it, then save again.');
+          paint();return;
+        }
+        prev=snap(cur||answers[pid]);
+        if(same(prev,d)){cancelChange(pid);return;}
+      }
+      var ev={id:newId(),part:pid,n:P.q.n,action:action,from:prev,to:d,at:Date.now()};
+      var body={n:P.q.n,part:pid,choice:d.choice,label:d.label,other:d.other,note:d.note,by:uid||'',at:ev.at,viaDefault:action==='default',rev:ev.id};
+      try{await db.doc('answers/'+pid).set(body);}
+      catch(e){msg(pid,'Could not save ('+errCode(e)+'). Check your access and try again.');return;}
+      answers[pid]=body;delete editing[pid];msg(pid,'');paint();
+      log(ev);
+    }finally{busy[pid]=false;}
+  }
+
+  function appendEvents(evs){
+    if(!uid)return Promise.reject({code:'no_user'});
+    var mine=(audits[uid]&&audits[uid].events)||[];
+    var next=mine.concat(evs);
+    return db.doc('audit/'+uid).set({events:next}).then(function(){audits[uid]={events:next};paint();});
+  }
+  function log(ev){
+    logQueue=logQueue.then(function(){
+      return appendEvents([ev])
+        .catch(function(){return appendEvents([ev]);})
+        .catch(function(){unlogged.push(ev);$('logwarn').hidden=false;});
+    });
+    return logQueue;
+  }
+  $('retrylog').addEventListener('click',function(){
+    var evs=unlogged;unlogged=[];$('logwarn').hidden=true;
+    logQueue=logQueue.then(function(){
+      return appendEvents(evs).catch(function(){unlogged=evs.concat(unlogged);$('logwarn').hidden=false;});
+    });
+  });
+
+  function eventsFor(pid){
+    var out=[];
+    Object.keys(audits).forEach(function(by){
+      var evs=(audits[by]&&audits[by].events)||[];
+      evs.forEach(function(e){if(e&&e.part===pid)out.push({by:by,e:e});});
+    });
+    out.sort(function(a,b){return (a.e.at||0)-(b.e.at||0);});
+    return out;
+  }
+  function shown(s){s=s||{};return s.choice==='other'?'Other: '+(s.other||''):(s.label||'');}
+  function line(x){
+    var e=x.e,nm=nameOf(x.by),t=e.at?' · '+when(e.at):'';
+    if(e.action==='change'&&e.from&&e.to&&e.from.choice===e.to.choice&&e.from.other===e.to.other)return nm+' edited the note'+t;
+    if(e.action==='change')return nm+' changed “'+shown(e.from)+'” → “'+shown(e.to)+'”'+t;
+    return nm+' chose “'+shown(e.to)+'”'+(e.action==='default'?' (default)':'')+t;
+  }
+
   function paint(){
     var total=0,done=0;
     Object.keys(parts).forEach(function(pid){
-      var P=parts[pid],a=answers[pid];total++;
-      var ot=$(pid+'-othertext'),nt=$(pid+'-note');
-      P.el.querySelectorAll('input[type=radio]').forEach(function(r){
-        if(a&&a.choice)r.checked=(r.value===a.choice);
-        r.disabled=readOnly;
-        r.parentNode.classList.toggle('sel',r.checked);
-      });
-      if(a){
-        if(document.activeElement!==ot)ot.value=a.other||'';
-        if(document.activeElement!==nt)nt.value=a.note||'';
-      }
-      ot.disabled=readOnly;nt.disabled=readOnly;
+      var P=parts[pid],a=answers[pid],st=state(pid);total++;
+      var ot=$(pid+'-othertext'),nt=$(pid+'-note'),frozen=(st==='locked'||st==='ro');
+      if(frozen&&a&&a.choice)fill(pid,a);
+      P.el.querySelectorAll('input[type=radio]').forEach(function(r){r.disabled=frozen;r.parentNode.classList.toggle('sel',r.checked);});
+      ot.disabled=frozen;nt.disabled=frozen;
+      var cur=collect(pid),sv=$(pid+'-save');
+      sv.hidden=!(st==='changing'||(st==='open'&&cur.choice==='other'));
+      sv.textContent=st==='changing'?'Save change':'Save';
+      sv.disabled=st==='changing'?same(snap(a),cur):!cur.other;
+      $(pid+'-change').hidden=st!=='locked';
+      $(pid+'-cancel').hidden=st!=='changing';
+      var evs=eventsFor(pid),changes=evs.filter(function(x){return x.e.action==='change';}).length;
       var who=P.el.querySelector('.who');
       if(a&&a.choice){
         done++;
         var nm=names[a.by]||'';
-        who.textContent='Saved'+(a.viaDefault?' (default accepted)':'')+(nm?' by '+nm:'')+(a.at?' · '+when(a.at):'');
-      }else{who.textContent=a&&a.note?'Note saved. Pick a choice.':'';}
+        who.textContent='Saved'+(a.viaDefault?' (default accepted)':'')+(nm?' by '+nm:'')+(a.at?' · '+when(a.at):'')+(changes?' · changed '+changes+'×':'');
+      }else{who.textContent='';}
+      var h=$(pid+'-hist');h.hidden=!evs.length;
+      h.querySelector('summary').textContent='History ('+evs.length+')';
+      var ol=h.querySelector('ol');ol.textContent='';
+      evs.forEach(function(x){ol.appendChild(el('li',null,line(x)));});
     });
     Q.forEach(function(q){
       var all=q.parts.every(function(p){var a=answers[p.id];return a&&a.choice;});
@@ -246,7 +366,10 @@ footer{color:var(--muted);font-size:14px;display:grid;gap:4px}
   }
   function resolveNames(){
     if(!user||!user.profiles)return;
-    var ids=[];Object.keys(answers).forEach(function(k){var b=answers[k].by;if(b&&ids.indexOf(b)<0&&!(b in names))ids.push(b);});
+    var ids=[];
+    function add(b){if(b&&ids.indexOf(b)<0&&!(b in names))ids.push(b);}
+    Object.keys(answers).forEach(function(k){add(answers[k].by);});
+    Object.keys(audits).forEach(add);
     if(!ids.length)return;
     user.profiles(ids).then(function(ps){ids.forEach(function(i){names[i]=(ps&&ps[i]&&ps[i].name)||'';});paint();}).catch(function(){});
   }
@@ -264,11 +387,11 @@ footer{color:var(--muted);font-size:14px;display:grid;gap:4px}
   }
   $('accdef').addEventListener('click',function(){
     if(!db||readOnly)return;
-    var pids=Object.keys(parts).filter(function(pid){var P=parts[pid];return groupOf[P.q.g].acceptDefaults&&P.defId&&!(answers[pid]&&answers[pid].choice);});
+    var pids=Object.keys(parts).filter(function(pid){var P=parts[pid];return groupOf[P.q.g].acceptDefaults&&P.defId&&state(pid)==='open';});
     var chain=Promise.resolve();
     pids.forEach(function(pid){
       var P=parts[pid],lb=$(pid+'-'+P.defId).parentNode.querySelector('.lbl span').textContent;
-      chain=chain.then(function(){return write(pid,{choice:P.defId,label:lb,other:'',note:$(pid+'-note').value.trim(),viaDefault:true});});
+      chain=chain.then(function(){return commit(pid,'default',{choice:P.defId,label:lb,other:'',note:$(pid+'-note').value.trim()});});
     });
   });
 
@@ -282,10 +405,15 @@ footer{color:var(--muted);font-size:14px;display:grid;gap:4px}
     if(!db){banner('info',offline);$('accdef').disabled=true;return;}
     try{if(user&&user.id)uid=await user.id();}catch(e){}
     try{if(user&&user.can){var cw=await user.can('data.write');if(cw===false){readOnly=true;banner('warn','You can read this page but not save answers. Ask the owner to share it with you as a Contributor or Editor.');$('accdef').disabled=true;}}}catch(e){}
+    paint();
     db.collection('answers').onSnapshot(function(snap){
       answers={};snap.docs.forEach(function(d){answers[d.id]=d.data()||{};});
       paint();resolveNames();
-    },function(e){banner('warn','Saved answers could not load ('+(e&&e.code?e.code:'error')+').');});
+    },function(e){banner('warn','Saved answers could not load ('+errCode(e)+').');});
+    db.collection('audit').onSnapshot(function(snap){
+      audits={};snap.docs.forEach(function(d){audits[d.id]=d.data()||{};});
+      paint();resolveNames();
+    },function(e){banner('warn','The change history could not load ('+errCode(e)+').');});
   })();
 })();
 </script>
