@@ -1,31 +1,35 @@
 # LazyTools
 
-Small skills for Claude Code, by The LazyDevs Inc. Each skill is its own plugin. Install only the ones you want.
+Small skills for Claude Code, by The LazyDevs Inc. One plugin, `lazytools`. It holds many skills. Install it once and you get all of them.
 
-| Plugin | What it does | Install | Command |
-|---|---|---|---|
-| [`help-me-decide`](plugins/help-me-decide) | Turns open decisions into a multiple-choice page. Then turns the saved answers into an ADR. | `/plugin install help-me-decide@lazytools` | `/help-me-decide:help-me-decide` |
+| Skill | What it does | Command |
+|---|---|---|
+| `help-me-decide` | Turns open decisions into a multiple-choice page. Then turns the saved answers into an ADR. | `/lazytools:help-me-decide` |
 
 ## Install
 
-Add the marketplace once:
+Add the marketplace once. It is named `thelazydevs`:
 
 ```
 /plugin marketplace add TheLazyDevsInc/LazyTools
 ```
 
-Then install a plugin by name, in the form `plugin@marketplace`:
+Then install the plugin, in the form `plugin@marketplace`:
 
 ```
-/plugin install help-me-decide@lazytools
+/plugin install lazytools@thelazydevs
 ```
 
-## Adding a plugin
+## Adding a skill
 
-1. Make `plugins/<name>/.claude-plugin/plugin.json` and `plugins/<name>/skills/<name>/SKILL.md`.
-2. Put any templates or scripts next to the skill.
-3. Add an entry to `.claude-plugin/marketplace.json` with `"source": "./plugins/<name>"`.
-4. Add a row to the table above.
+1. Make `plugins/lazytools/skills/<skill-name>/SKILL.md` with a `name` and a `description`.
+2. Put any templates or scripts next to it.
+3. Add a row to the table above.
+4. Raise `version` in `plugins/lazytools/.claude-plugin/plugin.json`.
+
+## Adding another plugin
+
+The marketplace `thelazydevs` can hold more plugins. Make `plugins/<name>/` with its own `.claude-plugin/plugin.json`, then add an entry to `.claude-plugin/marketplace.json` with `"source": "./plugins/<name>"`.
 
 ## Licence
 

@@ -1,18 +1,18 @@
 {
   "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
-  "name": "lazytools",
-  "description": "LazyTools by The LazyDevs Inc.: small skills for Claude Code. Install only the ones you want.",
+  "name": "thelazydevs",
+  "description": "Claude Code plugins by The LazyDevs Inc.",
   "owner": {
     "name": "The LazyDevs Inc.",
     "email": "hello@thelazydevs.com"
   },
   "plugins": [
     {
-      "name": "help-me-decide",
-      "description": "Turn open decisions into a multiple-choice page the decision owner answers, then turn the saved answers into an ADR.",
+      "name": "lazytools",
+      "description": "Small skills for Claude Code. First skill: help-me-decide, which turns open decisions into a multiple-choice page and the answers into an ADR.",
       "category": "productivity",
-      "source": "./plugins/help-me-decide",
-      "homepage": "https://github.com/TheLazyDevsInc/LazyTools/tree/main/plugins/help-me-decide"
+      "source": "./plugins/lazytools",
+      "homepage": "https://github.com/TheLazyDevsInc/LazyTools"
     }
   ]
 }
