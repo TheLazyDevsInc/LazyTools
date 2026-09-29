@@ -213,7 +213,7 @@ footer{color:var(--muted);font-size:14px;display:grid;gap:4px}
         card.appendChild(wrap);
         parts[p.id]={q:q,p:p,defId:defId,el:wrap};
         fs.addEventListener('change',function(ev){if(ev.target&&ev.target.type==='radio')onPick(p.id,ev.target.value);});
-        fs.addEventListener('keydown',function(ev){if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].indexOf(ev.key)>=0)kbd[p.id]=true;});
+        fs.addEventListener('keydown',function(ev){if(ev.target&&ev.target.type==='radio'&&['ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].indexOf(ev.key)>=0){kbd[p.id]=true;setTimeout(function(){kbd[p.id]=false;},0);}});
         $(p.id+'-othertext').addEventListener('input',function(){paint();});
         note.addEventListener('input',function(){paint();});
         $(p.id+'-save').addEventListener('click',function(){commit(p.id,state(p.id)==='changing'?'change':'answer');});
@@ -252,9 +252,10 @@ footer{color:var(--muted);font-size:14px;display:grid;gap:4px}
   }
 
   function onPick(pid,val){
+    var wasKbd=kbd[pid];kbd[pid]=false;
     msg(pid,'');
     if(state(pid)==='open'&&val!=='other'){
-      if(kbd[pid]){kbd[pid]=false;kbdPick[pid]=true;paint();return;}
+      if(wasKbd){kbdPick[pid]=true;paint();return;}
       commit(pid,'answer');return;
     }
     if(val==='other')$(pid+'-othertext').focus();

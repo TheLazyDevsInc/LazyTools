@@ -240,3 +240,19 @@ test('arrow keys select without saving', async () => {
   $('q1b-save').click(); await settle();
   assert.equal(fake.store.get('answers/q1b').choice, 'three', 'explicit Save must save the keyboard-selected choice');
 });
+
+test('an arrow key in the Other box does not block a later tap', async () => {
+  const { $, dom, fake } = await load();
+  $('q1a-othertext').dispatchEvent(new dom.window.KeyboardEvent('keydown', { key: 'ArrowRight', bubbles: true }));
+  await settle();
+  $('q1a-yes').click(); await settle();
+  assert.equal(fake.store.get('answers/q1a').choice, 'yes', 'arrow key in Other box must not block tap on normal option');
+});
+
+test('an arrow key with no change does not block a later tap', async () => {
+  const { $, dom, fake } = await load();
+  $('q1a-yes').dispatchEvent(new dom.window.KeyboardEvent('keydown', { key: 'ArrowDown', bubbles: true }));
+  await settle();
+  $('q1a-no').click(); await settle();
+  assert.equal(fake.store.get('answers/q1a').choice, 'no', 'arrow key with no change must not block later tap');
+});
