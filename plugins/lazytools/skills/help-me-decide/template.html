@@ -158,7 +158,7 @@ footer{color:var(--muted);font-size:14px;display:grid;gap:4px}
   ];
 
   var $=function(i){return document.getElementById(i);};
-  var db=null,user=null,uid=null,readOnly=false;
+  var db=null,user=null,uid=null,readOnly=false,answersLoaded=false;
   var answers={},audits={},names={},parts={},editing={},busy={},unlogged=[];
   var logQueue=Promise.resolve();
   var kbd={},kbdPick={};
@@ -225,7 +225,7 @@ footer{color:var(--muted);font-size:14px;display:grid;gap:4px}
   }
 
   function state(pid){
-    if(readOnly||!db)return 'ro';
+    if(readOnly||!db||!answersLoaded)return 'ro';
     if(editing[pid])return 'changing';
     var a=answers[pid];return a&&a.choice?'locked':'open';
   }
@@ -270,10 +270,11 @@ footer{color:var(--muted);font-size:14px;display:grid;gap:4px}
 
   async function commit(pid,action,given){
     if(busy[pid]||!db||readOnly)return;
+    if((action==='answer'||action==='default')&&state(pid)!=='open')return;
     var P=parts[pid],d=given||collect(pid);
     if(!d.choice)return;
     if(d.choice==='other'&&!d.other){msg(pid,'Type your answer, then press '+(action==='change'?'Save change':'Save')+'.');$(pid+'-othertext').focus();return;}
-    busy[pid]=true;
+    busy[pid]=true;paint();
     try{
       var prev=null;
       if(action==='change'){
@@ -297,14 +298,17 @@ footer{color:var(--muted);font-size:14px;display:grid;gap:4px}
       catch(e){msg(pid,'Could not save ('+errCode(e)+'). Check your access and try again.');return;}
       answers[pid]=body;delete editing[pid];delete kbdPick[pid];msg(pid,'');paint();
       log(ev);
-    }finally{busy[pid]=false;}
+    }finally{busy[pid]=false;paint();}
   }
 
   function appendEvents(evs){
     if(!uid)return Promise.reject({code:'no_user'});
-    var mine=(audits[uid]&&audits[uid].events)||[];
-    var next=mine.concat(evs);
-    return db.doc('audit/'+uid).set({events:next}).then(function(){audits[uid]={events:next};paint();});
+    var ref=db.doc('audit/'+uid);
+    return ref.get().then(function(s){
+      var next=((s&&s.exists&&s.data()&&s.data().events)||[]).slice();
+      evs.forEach(function(e){if(!next.some(function(x){return x&&x.id===e.id;}))next.push(e);});
+      return ref.set({events:next}).then(function(){audits[uid]={events:next};paint();});
+    });
   }
   function log(ev){
     logQueue=logQueue.then(function(){
@@ -350,6 +354,7 @@ footer{color:var(--muted);font-size:14px;display:grid;gap:4px}
       sv.hidden=!(st==='changing'||(st==='open'&&(cur.choice==='other'||kbdPick[pid])));
       sv.textContent=st==='changing'?'Save change':'Save';
       sv.disabled=st==='changing'?same(snap(a),cur):(cur.choice==='other'?!cur.other:false);
+      sv.disabled=sv.disabled||!!busy[pid];$(pid+'-cancel').disabled=!!busy[pid];
       $(pid+'-change').hidden=st!=='locked';
       $(pid+'-cancel').hidden=st!=='changing';
       var evs=eventsFor(pid),changes=evs.filter(function(x){return x.e.action==='change';}).length;
@@ -395,14 +400,17 @@ footer{color:var(--muted);font-size:14px;display:grid;gap:4px}
   $('accdef').addEventListener('click',function(){
     if(!db||readOnly)return;
     var pids=Object.keys(parts).filter(function(pid){var P=parts[pid];return groupOf[P.q.g].acceptDefaults&&P.defId&&state(pid)==='open';});
-    var chain=Promise.resolve();
+    var chain=Promise.resolve(),ab=$('accdef');
+    if(ab.disabled)return;
+    ab.disabled=true;
     pids.forEach(function(pid){
       var P=parts[pid],lb=$(pid+'-'+P.defId).parentNode.querySelector('.lbl span').textContent;
       chain=chain.then(function(){return commit(pid,'default',{choice:P.defId,label:lb,other:'',note:$(pid+'-note').value.trim()});});
     });
+    chain.then(function(){ab.disabled=!db||readOnly||!answersLoaded;},function(){ab.disabled=!db||readOnly||!answersLoaded;});
   });
 
-  build();linkIssues();paint();
+  build();linkIssues();$('accdef').disabled=true;paint();
 
   (async function init(){
     var offline='Saving is not available in this view. Open the page in claude.ai while signed in.';
@@ -415,6 +423,7 @@ footer{color:var(--muted);font-size:14px;display:grid;gap:4px}
     paint();
     db.collection('answers').onSnapshot(function(snap){
       answers={};snap.docs.forEach(function(d){answers[d.id]=d.data()||{};});
+      answersLoaded=true;$('accdef').disabled=readOnly;
       paint();resolveNames();
     },function(e){banner('warn','Saved answers could not load ('+errCode(e)+').');});
     db.collection('audit').onSnapshot(function(snap){

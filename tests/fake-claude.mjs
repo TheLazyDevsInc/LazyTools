@@ -1,13 +1,16 @@
 // In-memory stand-in for the Artifact runtime: claude.use('db') and claude.use('user').
-export function installFakeClaude(window, { uid = 'u_me', canWrite = true, names = {}, seed = {}, failAudit = 0 } = {}) {
+export function installFakeClaude(window, { uid = 'u_me', canWrite = true, names = {}, seed = {}, failAudit = 0, holdFirstSnapshot = false } = {}) {
   const store = new Map(Object.entries(seed).map(([k, v]) => [k, structuredClone(v)]));
   const writes = [];
   const subs = [];
   let auditFailures = failAudit;
   const meta = { fromCache: false, hasPendingWrites: false };
-  const snapDoc = (path) => ({ id: path.split('/').pop(), exists: store.has(path), data: () => store.get(path), metadata: meta });
-  const emit = () => {
+  const deepFreeze = (o) => { if (o && typeof o === 'object') { Object.values(o).forEach(deepFreeze); Object.freeze(o); } return o; };
+  const snapDoc = (path) => ({ id: path.split('/').pop(), exists: store.has(path), data: () => (store.has(path) ? deepFreeze(structuredClone(store.get(path))) : undefined), metadata: meta });
+  const emit = (only) => {
     for (const s of subs) {
+      if (only && s.coll !== only) continue;
+      if (holdFirstSnapshot && !s.released) continue;
       const docs = [...store.keys()]
         .filter((k) => k.split('/').length === 2 && k.startsWith(s.coll + '/'))
         .sort()
@@ -36,7 +39,7 @@ export function installFakeClaude(window, { uid = 'u_me', canWrite = true, names
     collection(coll) {
       return {
         path: coll,
-        onSnapshot(fn) { subs.push({ coll, fn }); queueMicrotask(emit); return () => {}; },
+        onSnapshot(fn) { const s = { coll, fn, released: !holdFirstSnapshot }; subs.push(s); if (!holdFirstSnapshot) queueMicrotask(() => emit()); return () => {}; },
       };
     },
   };
@@ -49,6 +52,8 @@ export function installFakeClaude(window, { uid = 'u_me', canWrite = true, names
   return {
     store,
     writes,
+    // With holdFirstSnapshot: emit the first snapshot for one collection, or for all when none is named.
+    release(coll) { for (const s of subs) if (!coll || s.coll === coll) s.released = true; emit(coll); },
     // A teammate's write that bypasses this page. silent: the page gets no snapshot.
     external(path, data, { silent = false } = {}) {
       store.set(path, structuredClone(data));

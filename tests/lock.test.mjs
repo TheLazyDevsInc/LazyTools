@@ -214,18 +214,21 @@ test('other text is not saved with a normal option', async () => {
   assert.equal(log[0].to.other, '', 'logged event.to.other must be empty');
 });
 
-test('Cancel during Save change does not throw or write', async () => {
+test('Cancel is disabled while Save change runs, so it cannot race the save', async () => {
   const { $, fake, errors } = await load();
   $('q1a-yes').click(); await settle();
   const n = fake.writes.length;
   $('q1a-change').click(); await settle();
   $('q1a-no').click(); await settle();
   $('q1a-save').click();
+  assert.ok($('q1a-cancel').disabled, 'Cancel must be disabled while saving');
+  assert.ok($('q1a-save').disabled, 'Save must be disabled while saving');
   $('q1a-cancel').click();
   await settle();
   noErrors(errors);
-  assert.equal(events(fake).length, 1, 'must not write to audit');
-  assert.equal(fake.store.get('answers/q1a').choice, 'yes', 'must keep original answer');
+  assert.equal(events(fake).length, 2, 'the save completes and logs once');
+  assert.equal(fake.store.get('answers/q1a').choice, 'no', 'the save wins; Cancel was ignored');
+  assert.ok($('q1a-yes').disabled, 'the part must be locked after the save');
 });
 
 test('arrow keys select without saving', async () => {
@@ -255,4 +258,43 @@ test('an arrow key with no change does not block a later tap', async () => {
   await settle();
   $('q1a-no').click(); await settle();
   assert.equal(fake.store.get('answers/q1a').choice, 'no', 'arrow key with no change must not block later tap');
+});
+
+// Final review fixes
+
+test('parts stay read-only until saved answers load', async () => {
+  const seed = { 'answers/q1a': { n: 1, part: 'q1a', choice: 'yes', label: 'Yes, retry automatically.', other: '', note: '', by: 'u_pat', at: 1000, viaDefault: false, rev: 'e_1' } };
+  const { $, fake } = await load({ seed, holdFirstSnapshot: true });
+  assert.ok($('q1a-yes').disabled, 'q1a must be read-only before load');
+  assert.ok($('q1b-three').disabled, 'q1b must be read-only before load');
+  assert.ok($('accdef').disabled, 'default button must be disabled before load');
+  $('q1b-three').click(); await settle();
+  assert.equal(fake.writes.length, 0, 'no write before answers load');
+  fake.release(); await settle();
+  assert.ok(!$('q1a-change').hidden, 'locked part must show Change answer');
+  assert.ok(!$('q1b-three').disabled, 'open part must be enabled after load');
+  assert.ok(!$('accdef').disabled, 'default button must be enabled after load');
+});
+
+test('a save keeps earlier log entries when the log has not loaded', async () => {
+  const old = { id: 'e_old', part: 'q1b', n: 1, action: 'answer', from: null, to: { choice: 'one', label: 'Retry only once.', other: '', note: '' }, at: 500 };
+  const seed = { 'audit/u_me': { events: [old] } };
+  const { $, fake } = await load({ seed, holdFirstSnapshot: true });
+  fake.release('answers'); await settle();
+  $('q1a-yes').click(); await settle();
+  const ids = events(fake).map((e) => e.id);
+  assert.equal(ids.length, 2);
+  assert.equal(ids[0], 'e_old');
+  assert.equal(ids[1], fake.store.get('answers/q1a').rev);
+});
+
+test('double click on the default button logs each default once', async () => {
+  const { $, fake } = await load();
+  $('accdef').click();
+  $('accdef').click();
+  await settle(16);
+  for (const pid of ['q1a', 'q1b']) {
+    assert.equal(events(fake).filter((e) => e.part === pid && e.action === 'default').length, 1, pid + ' default events');
+    assert.equal(fake.writes.filter((w) => w.path === 'answers/' + pid).length, 1, pid + ' answer writes');
+  }
 });
