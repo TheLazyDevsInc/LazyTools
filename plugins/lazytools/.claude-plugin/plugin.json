@@ -1,6 +1,6 @@
 {
   "name": "lazytools",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "LazyTools by The LazyDevs Inc.: small skills for Claude Code. First skill: help-me-decide, which turns open decisions into a multiple-choice page and the answers into an ADR.",
   "author": {
     "name": "TheLazyIndianTechie",

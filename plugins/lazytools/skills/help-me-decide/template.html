@@ -156,7 +156,7 @@ footer{color:var(--muted);font-size:14px;display:grid;gap:4px}
       wrap.appendChild(h);wrap.appendChild(list);box.appendChild(wrap);
     });
     Q.forEach(function(q){
-      var card=el('div','qq');card.id='card'+q.n;
+      var card=el('div','qq');card.id='card'+q.n;$('grp-'+q.g).appendChild(card);
       var head=el('div','qhead');
       head.appendChild(el('span','qn','Q'+q.n));
       head.appendChild(el('span','iss',q.iss));
@@ -189,7 +189,6 @@ footer{color:var(--muted);font-size:14px;display:grid;gap:4px}
         note.addEventListener('input',function(){later(p.id);});
       });
       if(q.parts.every(function(p){return p.nodef;}))card.appendChild(el('p','nodef','No default. We wait for your answer.'));
-      $('grp-'+q.g).appendChild(card);
     });
   }
 
