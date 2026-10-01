@@ -38,3 +38,5 @@ Run `npm install` once, then `npm test`. The test loads `template.html` in jsdom
 ## Licence
 
 MIT. See `LICENSE`. Copyright (c) 2026 The LazyDevs Inc.
+
+Provided as is, without warranty of any kind. See `LICENSE`.

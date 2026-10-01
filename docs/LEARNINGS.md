@@ -7,3 +7,4 @@
 - The directory submission portal's Data handling step asks whether the plugin sends data to services other than declared connectors. For help-me-decide the honest answer is yes: optional GitHub issue comments and the Google Fonts load. Keep both listed in plugins/lazytools/README.md under "Privacy and data".
 - The directory portal lists `privacyPolicyUrl`, `supportUrl` and `documentationUrl` as UNKNOWN_KEY warnings on Validate. Claude Code ignores them at load time; the directory reads them for the listing. Leave them in plugin.json.
 - A tracked `.DS_Store` blocks directory submission. Keep `.DS_Store` in .gitignore and never `git add .`.
+- Portal review of 0.3.3: the "Directory policy has warnings" item listed only the three listing-only fields (documentationUrl, privacyPolicyUrl, supportUrl) and an info note about icon.png. The security scan passed. No content change was needed.
