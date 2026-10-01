@@ -298,3 +298,13 @@ test('double click on the default button logs each default once', async () => {
     assert.equal(fake.writes.filter((w) => w.path === 'answers/' + pid).length, 1, pid + ' answer writes');
   }
 });
+
+test('a refused save names the Contributor role', async () => {
+  const { $, fake, errors } = await load({ canWrite: null, refuseAnswerWrites: true });
+  $('q1a-yes').click(); await settle();
+  noErrors(errors);
+  const msgText = $('q1a-msg').textContent;
+  assert.ok(msgText.includes('Contributor or Editor'), 'msg should name Contributor: ' + msgText);
+  assert.ok(msgText.includes('invalid_argument'), 'msg should include error code: ' + msgText);
+  assert.ok(!fake.store.has('answers/q1a'), 'no answer should be saved');
+});

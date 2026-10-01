@@ -295,7 +295,7 @@ footer{color:var(--muted);font-size:14px;display:grid;gap:4px}
       var ev={id:newId(),part:pid,n:P.q.n,action:action,from:prev,to:d,at:Date.now()};
       var body={n:P.q.n,part:pid,choice:d.choice,label:d.label,other:d.other,note:d.note,by:uid||'',at:ev.at,viaDefault:action==='default',rev:ev.id};
       try{await db.doc('answers/'+pid).set(body);}
-      catch(e){msg(pid,'Could not save ('+errCode(e)+'). Check your access and try again.');return;}
+      catch(e){msg(pid,'Could not save ('+errCode(e)+'). Your access may not allow saving. Ask the owner to share this page with you as a Contributor or Editor.');return;}
       answers[pid]=body;delete editing[pid];delete kbdPick[pid];msg(pid,'');paint();
       log(ev);
     }finally{busy[pid]=false;paint();}
