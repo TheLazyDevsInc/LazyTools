@@ -17,7 +17,7 @@ Small skills for Claude Code, by The LazyDevs Inc.
 
 Two jobs:
 
-1. **Ask.** It turns your open decisions into a multiple-choice page (a claude.ai Artifact). The decision owner taps a choice for each question. Each choice saves right away.
+1. **Ask.** It turns your open decisions into a multiple-choice page (a claude.ai Artifact). The decision owner taps a choice for each question. Each choice saves and locks. A change needs Change answer, and every change is logged with who made it.
 2. **Record.** It reads the saved answers back and writes an ADR (architecture decision record). It marks each row as answered or default-applied.
 
 Ask Claude in plain words, for example: "make an MCQ for Sam with the open questions on the billing issues". Or run `/lazytools:help-me-decide`.
