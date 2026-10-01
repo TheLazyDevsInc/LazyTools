@@ -48,6 +48,8 @@ The skill:
 
 ### Privacy and data
 
+Full policy: https://thelazydevs.com/lazytools/privacy/
+
 What the plugin stores, and where:
 - **Answers and change log.** The page saves each answer and a per-person change log in the artifact's own database on claude.ai. Each record holds the signed-in person's profile id, the choice, any "Other" text or note they typed, and a time. The page reads display names to show "Saved by …". It does not store names or email addresses.
 - **Who can see it.** Everyone who can open the artifact can read the answers and the log. Anyone with Editor access to the artifact can change them, so the log is a record, not tamper-proof. Do not put secrets, phone numbers or email addresses on the page.
@@ -57,6 +59,22 @@ What the plugin stores, and where:
 Data that leaves claude.ai:
 - **GitHub (optional).** In the Record step the skill can post each decision as a comment on the matching GitHub issue, with the decider's name, the date, the choice and a link to the ADR. It uses `gh` or your project's tracker agent, and asks first if your project has a rule about posting.
 - **Google Fonts.** The page loads its fonts from Google Fonts, which sees the viewer's IP address. Without network access it falls back to system fonts.
+
+Privacy questions: privacy@thelazydevs.com.
+
+### What it runs
+
+The skill runs locally on your machine:
+- `node check.mjs <page.html>` to validate the filled question page before publishing. check.mjs reads only that file and prints OK or errors. It makes no network calls.
+- `date` to verify dates you enter match actual weekdays.
+- `ls docs/adr` to find the next ADR file number.
+
+On claude.ai, it uses:
+- Artifact tool to publish the page.
+- ArtifactData tool to save answers and read the change log.
+- Optional: `gh` to post decisions as comments on GitHub issues.
+
+It does not install packages, download code, or change Claude's permission settings.
 
 ## Licence
 
