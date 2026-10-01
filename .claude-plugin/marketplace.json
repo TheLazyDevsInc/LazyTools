@@ -9,7 +9,7 @@
   "plugins": [
     {
       "name": "lazytools",
-      "description": "Small skills for Claude Code. First skill: help-me-decide, which turns open decisions into a multiple-choice page and the answers into an ADR.",
+      "description": "Small skills for Claude Code: help-me-decide turns open decisions into a multiple-choice page and an ADR; help-me-test turns a release into a tester checklist page and a test report.",
       "category": "productivity",
       "source": "./plugins/lazytools",
       "homepage": "https://github.com/TheLazyDevsInc/LazyTools"
