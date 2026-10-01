@@ -1,7 +1,7 @@
 {
   "name": "lazytools",
-  "version": "0.3.1",
-  "description": "LazyTools by The LazyDevs Inc.: small skills for Claude Code. First skill: help-me-decide, which turns open decisions into a multiple-choice page and the answers into an ADR.",
+  "version": "0.3.2",
+  "description": "LazyTools by The LazyDevs Inc.: small skills for Claude Code. First skill: help-me-decide, which turns open decisions into a multiple-choice page and the answers into an ADR. Requires Claude Code with Artifacts.",
   "author": {
     "name": "TheLazyIndianTechie",
     "email": "hello@thelazydevs.com",
@@ -10,5 +10,8 @@
   "homepage": "https://github.com/TheLazyDevsInc/LazyTools",
   "repository": "https://github.com/TheLazyDevsInc/LazyTools",
   "license": "MIT",
-  "keywords": ["lazytools", "decisions", "adr", "artifacts", "product-management"]
+  "keywords": ["lazytools", "decisions", "adr", "artifacts", "product-management"],
+  "privacyPolicyUrl": "https://github.com/TheLazyDevsInc/LazyTools/blob/main/plugins/lazytools/README.md#privacy-and-data",
+  "supportUrl": "https://github.com/TheLazyDevsInc/LazyTools/issues",
+  "documentationUrl": "https://github.com/TheLazyDevsInc/LazyTools/blob/main/plugins/lazytools/README.md"
 }

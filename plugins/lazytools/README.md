@@ -31,7 +31,8 @@ The skill:
 
 ### Requirements
 
-- Claude Code signed in to claude.ai, with the `Artifact` and `ArtifactData` tools.
+- Claude Code. The skill needs the `Artifact` and `ArtifactData` tools, so it does not run in the Claude web, desktop or mobile apps.
+- Signed in to claude.ai.
 - The `artifact-design` and `artifact-capabilities` skills.
 - The decision owner has Contributor or Editor access to the artifact. Viewer and Commenter access cannot save: the page may only find that out on the first save and then shows "Could not save". Share it as Contributor.
 
@@ -45,11 +46,17 @@ The skill:
 | `skills/help-me-decide/check.mjs` | Checks the filled page before publish |
 | `skills/help-me-decide/examples/` | A filled question set and a finished ADR |
 
-### Privacy
+### Privacy and data
 
-Answers live in the artifact's own database. They are visible to everyone who can open the artifact. Do not put secrets, phone numbers or email addresses on the page.
+What the plugin stores, and where:
+- **Answers and change log.** The page saves each answer and a per-person change log in the artifact's own database on claude.ai. Each record holds the signed-in person's profile id, the choice, any "Other" text or note they typed, and a time. The page reads display names to show "Saved by …". It does not store names or email addresses.
+- **Who can see it.** Everyone who can open the artifact can read the answers and the log. Anyone with Editor access to the artifact can change them, so the log is a record, not tamper-proof. Do not put secrets, phone numbers or email addresses on the page.
+- **The ADR.** The ADR you write from the answers names the people who answered. It is a file in your repository.
+- **No service of ours.** The plugin has no server and no analytics. The plugin authors do not receive or keep any data.
 
-The page loads its fonts from Google Fonts. Without network access it falls back to system fonts.
+Data that leaves claude.ai:
+- **GitHub (optional).** In the Record step the skill can post each decision as a comment on the matching GitHub issue, with the decider's name, the date, the choice and a link to the ADR. It uses `gh` or your project's tracker agent, and asks first if your project has a rule about posting.
+- **Google Fonts.** The page loads its fonts from Google Fonts, which sees the viewer's IP address. Without network access it falls back to system fonts.
 
 ## Licence
 
