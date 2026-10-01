@@ -78,7 +78,7 @@ What the plugin stores, and where:
 - **No service of ours.** The plugin has no server and no analytics. The plugin authors do not receive or keep any data.
 
 Data that leaves claude.ai:
-- **GitHub (optional).** In help-me-test's Report step, the skill can raise an issue for each failure, only when you ask. In help-me-decide's Record step the skill can post each decision as a comment on the matching GitHub issue, with the decider's name, the date, the choice and a link to the ADR. It uses `gh` or your project's tracker agent, and asks first if your project has a rule about posting.
+- **Your issue tracker (optional).** In help-me-test's Report step, the skill can raise an issue in your tracker for each failure, only when you ask. In help-me-decide's Record step the skill can post each decision as a comment on the matching issue in your tracker (GitHub by default), with the decider's name, the date, the choice and a link to the ADR. It uses `gh` for GitHub or your project's tracker agent for other trackers, and asks first if your project has a rule about posting.
 - **Google Fonts.** The page loads its fonts from Google Fonts, which sees the viewer's IP address. Without network access it falls back to system fonts.
 
 Privacy questions: privacy@thelazydevs.com.
@@ -89,14 +89,17 @@ The skill runs locally on your machine:
 - `node check.mjs <page.html>` to validate the filled question or test page before publishing. check.mjs reads only that file and prints OK or errors. It makes no network calls.
 - `date` to verify dates you enter match actual weekdays.
 - `ls docs/adr` to find the next ADR file number.
+- help-me-test writes its report to `docs/test-reports/<version>.md`, or where you say.
 
 On claude.ai, it uses:
 - Artifact tool to publish the page.
 - ArtifactData tool to read the saved answers, test results and change log.
-- Optional: `gh` to post decisions as comments on GitHub issues.
+- Optional: `gh` (GitHub) or your project's tracker agent to post decisions as issue comments (help-me-decide) or raise an issue for each failure (help-me-test), only when you ask.
 
 It does not install packages, download code, or change Claude's permission settings.
 
 ## Licence
 
 MIT. See `LICENSE`.
+
+Provided as is, without warranty of any kind. Generated decision pages and ADRs are drafts: check them before you rely on them.

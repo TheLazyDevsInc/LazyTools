@@ -34,8 +34,10 @@ The marketplace `thelazydevs` can hold more plugins. Make `plugins/<name>/` with
 
 ## Development
 
-Run `npm install` once, then `npm test`. The test loads `template.html` in jsdom with the sample questions and checks that the cards render.
+Run `npm install` once, then `npm test`. The tests load each skill's `template.html` in jsdom with its sample data and check that the decision cards and the tester page render and save.
 
 ## Licence
 
 MIT. See `LICENSE`. Copyright (c) 2026 The LazyDevs Inc.
+
+Provided as is, without warranty of any kind. See `LICENSE`.
