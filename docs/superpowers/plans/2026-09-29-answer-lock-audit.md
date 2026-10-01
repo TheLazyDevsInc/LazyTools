@@ -1,6 +1,6 @@
 # Answer Lock and Change Log Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [x]`) syntax for tracking.
 
 **Goal:** Saved answers on the help-me-decide page lock. A change needs Change answer, then Save change. Every save is logged per person at `audit/<person id>`, and Phase 2 shows the changes in the ADR.
 
@@ -43,7 +43,7 @@ No code is kept. The controller does this with the Artifact and ArtifactData too
 **Interfaces:**
 - Produces: a yes/no answer for each check below. If any check fails, stop and revise the spec before Task 2.
 
-- [ ] **Step 1: Write the probe page**
+- [x] **Step 1: Write the probe page**
 
 ```html
 <title>Rules Probe</title>
@@ -51,11 +51,11 @@ No code is kept. The controller does this with the Artifact and ArtifactData too
 <p>Probe page for access rules. Safe to delete.</p>
 ```
 
-- [ ] **Step 2: Publish it with the rules**
+- [x] **Step 2: Publish it with the rules**
 
 Artifact `publish`, `file_path` = the probe, `icon` = `lock`, `capabilities` = the Global Constraints publish capabilities.
 
-- [ ] **Step 3: Run the four checks with ArtifactData**
+- [x] **Step 3: Run the four checks with ArtifactData**
 
 Owner id: `u_9AFlzxNDwCwLuTh2tE0Ybw` (from the earlier answers).
 - (a) `set`, `collection: audit`, `doc_id: u_9AFlzxNDwCwLuTh2tE0Ybw`, `data: {"events": []}`, `as_level: interact` → expected: success.
@@ -63,7 +63,7 @@ Owner id: `u_9AFlzxNDwCwLuTh2tE0Ybw` (from the earlier answers).
 - (c) `list`, `collection: audit`, `as_level: view` → expected: shows the doc from (a).
 - (d) `list`, `collection: audit` (no `as_level`) → expected: shows the doc from (a).
 
-- [ ] **Step 4: Clean up and record**
+- [x] **Step 4: Clean up and record**
 
 `delete` the doc from (a), passing its `version` as `if_version`. Add the four results to `docs/LEARNINGS.md` only if one surprised us (via a Haiku subagent). Delete the probe artifact only if the user asks.
 
@@ -82,7 +82,7 @@ Owner id: `u_9AFlzxNDwCwLuTh2tE0Ybw` (from the earlier answers).
 - Produces: `installFakeClaude(window, {uid, canWrite, names, seed, failAudit}) → {store: Map<path, object>, writes: Array<{path, data}>, external(path, data, {silent}): void}` from `tests/fake-claude.mjs`.
 - Consumes (from Task 3, page DOM ids per part id `P`): radios `#P-<optId>` and `#P-other`, `#P-othertext`, `#P-note`, buttons `#P-save`, `#P-change`, `#P-cancel`, status `#P-msg`, history `details#P-hist` with `summary` and `ol > li`, global `#logwarn` and `#retrylog`, and `.who` inside each part.
 
-- [ ] **Step 1: Create `tests/fill.mjs`**
+- [x] **Step 1: Create `tests/fill.mjs`**
 
 ```js
 import fs from 'node:fs';
@@ -118,7 +118,7 @@ export function filledPage() {
 }
 ```
 
-- [ ] **Step 2: Point `tests/template.test.mjs` at `fill.mjs`**
+- [x] **Step 2: Point `tests/template.test.mjs` at `fill.mjs`**
 
 Replace everything from the first line down to and including the line `html = html.replace(/\{\{([A-Z_]+)\}\}/g, (m, name) => (name in values ? values[name] : m));` with:
 
@@ -133,12 +133,12 @@ const html = filledPage();
 
 Leave the rest of the file (the `pageErrors`, `before()` and the 7 tests) unchanged.
 
-- [ ] **Step 3: Run the old tests to prove the refactor changed nothing**
+- [x] **Step 3: Run the old tests to prove the refactor changed nothing**
 
 Run: `npm test`
 Expected: `pass 7`, `fail 0`.
 
-- [ ] **Step 4: Create `tests/fake-claude.mjs`**
+- [x] **Step 4: Create `tests/fake-claude.mjs`**
 
 ```js
 // In-memory stand-in for the Artifact runtime: claude.use('db') and claude.use('user').
@@ -201,7 +201,7 @@ export function installFakeClaude(window, { uid = 'u_me', canWrite = true, names
 }
 ```
 
-- [ ] **Step 5: Create `tests/lock.test.mjs` with all lock, log and Review Focus tests**
+- [x] **Step 5: Create `tests/lock.test.mjs` with all lock, log and Review Focus tests**
 
 ```js
 import { test } from 'node:test';
@@ -411,12 +411,12 @@ test("a teammate's answer locks an open part", async () => {
 });
 ```
 
-- [ ] **Step 6: Run the tests to prove they fail (red)**
+- [x] **Step 6: Run the tests to prove they fail (red)**
 
 Run: `npm test`
 Expected: the 7 tests in `template.test.mjs` pass; every test in `lock.test.mjs` fails (for example `q1a-change` is null, or no `audit/` write).
 
-- [ ] **Step 7: Commit (controller)**
+- [x] **Step 7: Commit (controller)**
 
 ```bash
 git add tests/fill.mjs tests/fake-claude.mjs tests/lock.test.mjs tests/template.test.mjs
@@ -435,7 +435,7 @@ git commit -m "test(help-me-decide): failing tests for answer lock and change lo
 - Consumes: the DOM ids listed in Task 2's Interfaces (this task creates them).
 - Produces: `answers/<part>` bodies with `rev`; `audit/<uid>` bodies `{events: [...]}`; event shape `{id, part, n, action, from, to, at}` as in the spec.
 
-- [ ] **Step 1: Add CSS**
+- [x] **Step 1: Add CSS**
 
 Add these rules at the end of the `<style>` block, just before `</style>`:
 
@@ -453,7 +453,7 @@ Add these rules at the end of the `<style>` block, just before `</style>`:
 .hist ol{margin:6px 0 0;padding-left:20px;display:grid;gap:4px}
 ```
 
-- [ ] **Step 2: Change the help line and add the log warning element**
+- [x] **Step 2: Change the help line and add the log warning element**
 
 Replace the `.askbar` `<span class="sub">` text with:
 `Tap a choice to save and lock it. To change it later, press Change answer. Type a note before you tap if a choice needs a detail.`
@@ -467,7 +467,7 @@ Directly after `<div id="banner" hidden></div>` add:
   </div>
 ```
 
-- [ ] **Step 3: Replace the script body**
+- [x] **Step 3: Replace the script body**
 
 In the `<script>`, keep `var ISSUE_BASE=...`, `var GROUPS=[...]` and `var Q=[...]` (with their comments) exactly as they are. Replace everything from `var $=function(i){...}` down to, but not including, the final `})();` of the IIFE with:
 
@@ -732,22 +732,22 @@ In the `<script>`, keep `var ISSUE_BASE=...`, `var GROUPS=[...]` and `var Q=[...
   })();
 ```
 
-- [ ] **Step 4: Run all tests (green)**
+- [x] **Step 4: Run all tests (green)**
 
 Run: `npm test`
 Expected: `template.test.mjs` 7 pass; `lock.test.mjs` 14 pass; `fail 0`.
 
-- [ ] **Step 5: Run the old-template red check**
+- [x] **Step 5: Run the old-template red check**
 
 Run: `TEMPLATE=<scratchpad>/template-0.2.0-broken.html npm test`
 Expected: failures, including `page script threw`.
 
-- [ ] **Step 6: Run `check.mjs` on a filled sample**
+- [x] **Step 6: Run `check.mjs` on a filled sample**
 
 Fill the template with `examples/sample-questions.md` (same values as `tests/fill.mjs`) into `<scratchpad>/sample-0.3.0.html`, then run `node plugins/lazytools/skills/help-me-decide/check.mjs <scratchpad>/sample-0.3.0.html`.
 Expected: `OK`.
 
-- [ ] **Step 7: Commit (controller)**
+- [x] **Step 7: Commit (controller)**
 
 ```bash
 git add plugins/lazytools/skills/help-me-decide/template.html
@@ -767,7 +767,7 @@ git commit -m "feat(help-me-decide): lock saved answers and log changes per pers
 **Interfaces:**
 - Consumes: the data shapes from Task 3.
 
-- [ ] **Step 1: Phase 1 step 4 in `SKILL.md`**
+- [x] **Step 1: Phase 1 step 4 in `SKILL.md`**
 
 Replace ``Publish with the Artifact tool and `capabilities: {"db": {}, "user": {"scopes": ["profile"]}}`.`` with:
 
@@ -781,7 +781,7 @@ and replace `Answers save to the `answers` collection, one document per part id.
 Answers save to the `answers` collection, one document per part id. Each save also adds one event to `audit/<person id>`.
 ```
 
-- [ ] **Step 2: Phase 2 step 1 in `SKILL.md`**
+- [x] **Step 2: Phase 2 step 1 in `SKILL.md`**
 
 Replace the whole step 1 with:
 
@@ -789,7 +789,7 @@ Replace the whole step 1 with:
 1. **Read the answers and the change log.** Use `ArtifactData` with `action: list` on `answers`, then on `audit`. Each `answers` document has: `n`, `part`, `choice`, `label`, `other`, `note`, `by`, `at`, `viaDefault`, `rev`. Each `audit` document id is a person id; its `events` list holds `{id, part, n, action, from, to, at}`, where `action` is `answer`, `change` or `default`. Use `action: profiles` on the `audit` ids and the `by` ids to get names. The author of an event is the `audit` document id, which the server checks. If `answers.by` differs from the author of the event whose `id` equals `answers.rev`, say so in the Record section. If there is no `audit` collection, the page is older than 0.3.0: write "No change history recorded (page older than 0.3.0)."
 ```
 
-- [ ] **Step 3: Phase 2 step 2 in `SKILL.md`**
+- [x] **Step 3: Phase 2 step 2 in `SKILL.md`**
 
 Replace the first sentence of step 2 with:
 
@@ -799,7 +799,7 @@ Replace the first sentence of step 2 with:
 
 Keep the rest of step 2 unchanged.
 
-- [ ] **Step 4: Phase 2 step 4 in `SKILL.md`**
+- [x] **Step 4: Phase 2 step 4 in `SKILL.md`**
 
 Add this bullet after the bullet that starts "Fill Context from the issues":
 
@@ -807,11 +807,11 @@ Add this bullet after the bullet that starts "Fill Context from the issues":
    - Fill the Changes section from the `change` events, one line each, in time order: "Q1b: 'Retry only once.' → 'Retry up to 3 times.', by <name>, 30 Sep 2026 10:15 IST." For a note-only change write "Q1b: note edited by <name>, <date>", then quote the new note. Name only, never email. If two people share a name, add the first 6 characters of their id.
 ```
 
-- [ ] **Step 5: Phase 2 step 7 in `SKILL.md`**
+- [x] **Step 5: Phase 2 step 7 in `SKILL.md`**
 
 Replace `question | answer | source (answered, default) | ADR | issue comment posted` with `question | answer | source (answered, changed N×, default) | ADR | issue comment posted`.
 
-- [ ] **Step 6: `adr-template.md`**
+- [x] **Step 6: `adr-template.md`**
 
 Replace the line `Mark every row **Answered** or **Default applied**. Never present a default as a decision someone made.` with:
 
@@ -832,16 +832,16 @@ In the Record section, add after the "Raw answers" line:
 - Change log: read from the artifact `audit` collection on {{date}}. {{Any answer marked "not in the log", or any `by` that differs from the log author, or "All answers match the log."}}
 ```
 
-- [ ] **Step 7: Version**
+- [x] **Step 7: Version**
 
 In `plugins/lazytools/.claude-plugin/plugin.json` change `"version": "0.2.2"` to `"version": "0.3.0"`.
 
-- [ ] **Step 8: Check**
+- [x] **Step 8: Check**
 
 Run: `grep -n "audit" plugins/lazytools/skills/help-me-decide/SKILL.md plugins/lazytools/skills/help-me-decide/adr-template.md` and `node -e "JSON.parse(require('fs').readFileSync('plugins/lazytools/.claude-plugin/plugin.json','utf8'))"` and `npm test`.
 Expected: the new lines appear; JSON parses; all tests pass.
 
-- [ ] **Step 9: Commit (controller)**
+- [x] **Step 9: Commit (controller)**
 
 ```bash
 git add plugins/lazytools/skills/help-me-decide/SKILL.md plugins/lazytools/skills/help-me-decide/adr-template.md plugins/lazytools/.claude-plugin/plugin.json plugins/lazytools/README.md
@@ -858,10 +858,10 @@ git commit -m "docs(help-me-decide): publish rules, change log in Phase 2 and AD
 **Interfaces:**
 - Consumes: everything above.
 
-- [ ] **Step 1: Publish the filled sample** with the Global Constraints capabilities, `icon` `checklist`, title `Answer Lock Test`.
-- [ ] **Step 2: Ask the user** to tap one answer, press Change answer, pick another option, press Save change, then press Change answer and Cancel on another part.
-- [ ] **Step 3: Read back** `answers` and `audit` with ArtifactData. Expected: `audit/<user id>` holds `answer` and `change` events whose `id` matches `answers.rev`; the user's id in the path equals `answers.by`.
-- [ ] **Step 4: Push the branch and open a PR** (push in its own command, then `gh pr create` without `--base`). The PR body lists what was tested, including the live check, and what was not.
+- [x] **Step 1: Publish the filled sample** with the Global Constraints capabilities, `icon` `checklist`, title `Answer Lock Test`.
+- [x] **Step 2: Ask the user** to tap one answer, press Change answer, pick another option, press Save change, then press Change answer and Cancel on another part.
+- [x] **Step 3: Read back** `answers` and `audit` with ArtifactData. Expected: `audit/<user id>` holds `answer` and `change` events whose `id` matches `answers.rev`; the user's id in the path equals `answers.by`.
+- [x] **Step 4: Push the branch and open a PR** (push in its own command, then `gh pr create` without `--base`). The PR body lists what was tested, including the live check, and what was not.
 
 ## Self-review notes
 
