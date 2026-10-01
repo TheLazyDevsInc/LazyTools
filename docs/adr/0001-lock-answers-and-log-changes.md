@@ -73,8 +73,8 @@ Every answer matches the default Claude proposed. Vinay chose each one by hand. 
 
 - **Users see:** locked parts with "Saved by <name> · <time>", a Change answer button, and a History list per part.
 - **Data:** new path `audit/<person id>`, one document per person with a list of events. `answers/<part id>` gains a `rev` field. Old pages with no `audit` keep working.
-- **Access:** new rules. Everyone who can open the page reads `audit`. Each person writes only their own `audit/<id>`. Viewers and Commenters get no Change button.
-- **Follow-ups:** none tracked yet. The build plan is in the design spec (no issue exists).
+- **Access:** new rules. Everyone who can open the page reads `audit`. Each person writes only their own `audit/<id>`. Viewers and Commenters get no Change button. The page can learn this only from a refused save when `can("data.write")` returns null; the message then names the Contributor role.
+- **Follow-ups:** Live two-account check of the "changed while you were editing" conflict message: https://github.com/TheLazyDevsInc/LazyTools/issues/5. The build plan is in the design spec.
 
 ## Action items
 

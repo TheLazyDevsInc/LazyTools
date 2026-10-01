@@ -33,7 +33,7 @@ The skill:
 
 - Claude Code signed in to claude.ai, with the `Artifact` and `ArtifactData` tools.
 - The `artifact-design` and `artifact-capabilities` skills.
-- The decision owner has Contributor or Editor access to the artifact. With Viewer access the page shows "You can read but not save".
+- The decision owner has Contributor or Editor access to the artifact. Viewer and Commenter access cannot save: the page may only find that out on the first save and then shows "Could not save". Share it as Contributor.
 
 ### Files
 
