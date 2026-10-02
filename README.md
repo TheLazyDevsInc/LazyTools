@@ -5,6 +5,7 @@ Small skills for Claude Code, by The LazyDevs Inc. One plugin, `lazytools`. It h
 | Skill | What it does | Command |
 |---|---|---|
 | `help-me-decide` | Turns open decisions into a multiple-choice page. Then turns the saved answers into an ADR. | `/lazytools:help-me-decide` |
+| `help-me-test` | Turns a release's changes into a tester checklist page. Each tester marks every test Pass, Fail, Blocked or Skip. Then turns the results into a test report. | `/lazytools:help-me-test` |
 
 ## Install
 
@@ -33,7 +34,7 @@ The marketplace `thelazydevs` can hold more plugins. Make `plugins/<name>/` with
 
 ## Development
 
-Run `npm install` once, then `npm test`. The test loads `template.html` in jsdom with the sample questions and checks that the cards render.
+Run `npm install` once, then `npm test`. The tests load each skill's `template.html` in jsdom with its sample data and check that the decision cards and the tester page render and save.
 
 ## Licence
 

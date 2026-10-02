@@ -1,5 +1,5 @@
 // In-memory stand-in for the Artifact runtime: claude.use('db') and claude.use('user').
-export function installFakeClaude(window, { uid = 'u_me', canWrite = true, names = {}, seed = {}, failAudit = 0, holdFirstSnapshot = false, refuseAnswerWrites = false } = {}) {
+export function installFakeClaude(window, { uid = 'u_me', canWrite = true, names = {}, seed = {}, failAudit = 0, holdFirstSnapshot = false, refuseAnswerWrites = false, refuseWrites = '' } = {}) {
   const store = new Map(Object.entries(seed).map(([k, v]) => [k, structuredClone(v)]));
   const writes = [];
   const subs = [];
@@ -25,7 +25,7 @@ export function installFakeClaude(window, { uid = 'u_me', canWrite = true, names
         path,
         async get() { return snapDoc(path); },
         async set(data) {
-          if (refuseAnswerWrites && path.startsWith('answers/')) {
+          if ((refuseAnswerWrites && path.startsWith('answers/')) || (refuseWrites && path.startsWith(refuseWrites))) {
             throw Object.assign(new Error('invalid_argument'), { code: 'invalid_argument' });
           }
           if (path.startsWith('audit/') && auditFailures > 0) {
