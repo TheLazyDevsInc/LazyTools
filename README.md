@@ -6,6 +6,7 @@ Small skills for Claude Code, by The LazyDevs Inc. One plugin, `lazytools`. It h
 |---|---|---|
 | `help-me-decide` | Turns open decisions into a multiple-choice page. Then turns the saved answers into an ADR. | `/lazytools:help-me-decide` |
 | `help-me-test` | Turns a release's changes into a tester checklist page. Each tester marks every test Pass, Fail, Blocked or Skip. Then turns the results into a test report. | `/lazytools:help-me-test` |
+| `help-me-review` | Turns a pull request into a review checklist page. Each reviewer marks every item Looks good, Change needed, Question or Skip. Then turns the verdicts into a review summary. | `/lazytools:help-me-review` |
 
 ## Install
 

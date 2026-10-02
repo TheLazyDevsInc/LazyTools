@@ -6,6 +6,7 @@ Small skills for Claude Code, by The LazyDevs Inc.
 |---|---|---|
 | `help-me-decide` | Turns open decisions into a multiple-choice page. Then turns the saved answers into an ADR. | `/lazytools:help-me-decide` |
 | `help-me-test` | Turns a release's changes into a tester checklist page. Each tester marks every test Pass, Fail, Blocked or Skip. Then turns the results into a test report. | `/lazytools:help-me-test` |
+| `help-me-review` | Turns a pull request into a review checklist page. Each reviewer marks every item Looks good, Change needed, Question or Skip. Then turns the verdicts into a review summary. | `/lazytools:help-me-review` |
 
 ## Install
 
@@ -66,6 +67,25 @@ Requirements are the same as help-me-decide. Share the page with testers as Cont
 | `skills/help-me-test/check.mjs` | Checks the filled page before publish |
 | `skills/help-me-test/examples/` | A filled test guide for a made-up release |
 
+## help-me-review
+
+Two jobs:
+
+1. **Check.** It reads one pull request (description, linked issues, diff, CI) and writes a review guide: what the PR does, then items grouped by area, each with the code to look at, a "Fine if" line, an "Ask for a change if" line, a file reference and a severity. It publishes the guide as a claude.ai Artifact. Each reviewer ticks the areas they review and marks each item Looks good, Change needed, Question or Skip. Change needed and Question need a note. Each verdict saves and locks. A change needs Change verdict, and every change is logged. Every reviewer sees the team's verdicts on each item.
+2. **Summarise.** It reads every reviewer's verdicts back and writes a review summary, with changes and questions first and the reviewers' notes word for word. It does not say the PR is ready to merge.
+
+Ask Claude in plain words, for example: "make a review checklist for PR 231 and split it between me and Priya". Or run `/lazytools:help-me-review`.
+
+Requirements are the same as help-me-decide. Share the page with reviewers as Contributor.
+
+| Path | What |
+|---|---|
+| `skills/help-me-review/SKILL.md` | The workflow and its rules |
+| `skills/help-me-review/template.html` | The reviewer page |
+| `skills/help-me-review/review-template.md` | The summary layout |
+| `skills/help-me-review/check.mjs` | Checks the filled page before publish |
+| `skills/help-me-review/examples/` | A filled review guide for a made-up PR |
+
 ### Privacy and data
 
 Full policy: https://thelazydevs.com/lazytools/privacy/
@@ -73,12 +93,14 @@ Full policy: https://thelazydevs.com/lazytools/privacy/
 What the plugin stores, and where:
 - **Answers and change log.** The page saves each answer and a per-person change log in the artifact's own database on claude.ai. Each record holds the signed-in person's profile id, the choice, any "Other" text or note they typed, and a time. The page reads display names to show "Saved by …". It does not store names or email addresses.
 - **Test results and change log (help-me-test).** The page saves each tester's results in one record per person, and a per-person change log, in the artifact's own database. Each result holds the tester's profile id, the status, any note they typed, and a time. Which parts a tester ticked is kept only in their own browser.
+- **Review verdicts and change log (help-me-review).** The page saves each reviewer's verdicts in one record per person, and a per-person change log, in the artifact's own database. Each verdict holds the reviewer's profile id, the status, any note they typed, and a time. Which areas a reviewer ticked is kept only in their own browser. The page shows code references (file and line) from the PR, not code.
 - **Who can see it.** Everyone who can open the artifact can read the answers and the log. Anyone with Editor access to the artifact can change them, so the log is a record, not tamper-proof. Do not put secrets, phone numbers or email addresses on the page.
-- **The ADR and the test report.** The ADR names the people who answered. The test report names the testers and quotes their notes. Both are files in your repository.
+- **The ADR, the test report and the review summary.** The ADR names the people who answered. The test report names the testers and quotes their notes. The review summary names the reviewers and quotes their notes. Both are files in your repository.
 - **No service of ours.** The plugin has no server and no analytics. The plugin authors do not receive or keep any data.
 
 Data that leaves claude.ai:
 - **Your issue tracker (optional).** In help-me-test's Report step, the skill can raise an issue in your tracker for each failure, only when you ask. In help-me-decide's Record step the skill can post each decision as a comment on the matching issue in your tracker (GitHub by default), with the decider's name, the date, the choice and a link to the ADR. It uses `gh` for GitHub or your project's tracker agent for other trackers, and asks first if your project has a rule about posting.
+- **GitHub (optional).** In help-me-review's summary step, the skill can post the changes and questions as review comments on the pull request, only when you ask. It reads the PR through `gh` or the GitHub connector. It never approves or requests changes without your word.
 - **Google Fonts.** The page loads its fonts from Google Fonts, which sees the viewer's IP address. Without network access it falls back to system fonts.
 
 Privacy questions: privacy@thelazydevs.com.
@@ -86,14 +108,14 @@ Privacy questions: privacy@thelazydevs.com.
 ### What it runs
 
 The skill runs locally on your machine:
-- `node check.mjs <page.html>` to validate the filled question or test page before publishing. check.mjs reads only that file and prints OK or errors. It makes no network calls.
+- `node check.mjs <page.html>` to validate the filled question, test or review page before publishing. check.mjs reads only that file and prints OK or errors. It makes no network calls.
 - `date` to verify dates you enter match actual weekdays.
 - `ls docs/adr` to find the next ADR file number.
 - help-me-test writes its report to `docs/test-reports/<version>.md`, or where you say.
 
 On claude.ai, it uses:
 - Artifact tool to publish the page.
-- ArtifactData tool to read the saved answers, test results and change log.
+- ArtifactData tool to read the saved answers, test results, review verdicts and change log.
 - Optional: `gh` (GitHub) or your project's tracker agent to post decisions as issue comments (help-me-decide) or raise an issue for each failure (help-me-test), only when you ask.
 
 It does not install packages, download code, or change Claude's permission settings.
