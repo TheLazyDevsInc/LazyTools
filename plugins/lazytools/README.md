@@ -7,6 +7,7 @@ Small skills for Claude Code, by The LazyDevs Inc.
 | `help-me-decide` | Turns open decisions into a multiple-choice page. Then turns the saved answers into an ADR. | `/lazytools:help-me-decide` |
 | `help-me-test` | Turns a release's changes into a tester checklist page. Each tester marks every test Pass, Fail, Blocked or Skip. Then turns the results into a test report. | `/lazytools:help-me-test` |
 | `help-me-review` | Turns a pull request into a review checklist page. Each reviewer marks every item Looks good, Change needed, Question or Skip. Then turns the verdicts into a review summary. | `/lazytools:help-me-review` |
+| `help-me-catch-up` | Turns the current session into a short recap page: how you got here, where things stand and 2 or 3 ways to carry on, each with a prompt to paste. | `/lazytools:help-me-catch-up` |
 
 ## Install
 
@@ -86,6 +87,21 @@ Requirements are the same as help-me-decide. Share the page with reviewers as Co
 | `skills/help-me-review/check.mjs` | Checks the filled page before publish |
 | `skills/help-me-review/examples/` | A filled review guide for a made-up PR |
 
+## help-me-catch-up
+
+One job. When you switch back to a task and say "catch me up", it reads the session (and the real state of the repo: `git status`, recent commits, the open PR) and publishes a one-minute recap as a claude.ai Artifact: where things stand, how you got here, what is done, in flight, open or blocked, and 2 or 3 ways to carry on with one recommended. Each way has a first step and a prompt you copy as your next message. It does not start any of them for you.
+
+Ask Claude in plain words, for example: "catch me up" or "recap the billing work". Or run `/lazytools:help-me-catch-up`.
+
+The page is read-only. It saves nothing, needs no database and no sharing settings, so Viewer access is enough for anyone you send it to.
+
+| Path | What |
+|---|---|
+| `skills/help-me-catch-up/SKILL.md` | The workflow and its rules |
+| `skills/help-me-catch-up/template.html` | The recap page |
+| `skills/help-me-catch-up/check.mjs` | Checks the filled page before publish |
+| `skills/help-me-catch-up/examples/` | A filled recap for a made-up session |
+
 ### Privacy and data
 
 Full policy: https://thelazydevs.com/lazytools/privacy/
@@ -96,6 +112,7 @@ What the plugin stores, and where:
 - **Review verdicts and change log (help-me-review).** The page saves each reviewer's verdicts in one record per person, and a per-person change log, in the artifact's own database. Each verdict holds the reviewer's profile id, the status, any note they typed, and a time. Which areas a reviewer ticked is kept only in their own browser. The page shows code references (file and line) from the PR, not code.
 - **Who can see it.** Everyone who can open the artifact can read the answers and the log. Anyone with Editor access to the artifact can change them, so the log is a record, not tamper-proof. Do not put secrets, phone numbers or email addresses on the page.
 - **The ADR, the test report and the review summary.** The ADR names the people who answered. The test report names the testers and quotes their notes. The review summary names the reviewers and quotes their notes. Both are files in your repository.
+- **Recap (help-me-catch-up).** The page holds a summary of your session as text, and nothing is saved from it. It can name branches, files and PR numbers, so share it with care. The skill never puts secrets on it.
 - **No service of ours.** The plugin has no server and no analytics. The plugin authors do not receive or keep any data.
 
 Data that leaves claude.ai:
@@ -109,6 +126,7 @@ Privacy questions: privacy@thelazydevs.com.
 
 The skill runs locally on your machine:
 - `node check.mjs <page.html>` to validate the filled question, test or review page before publishing. check.mjs reads only that file and prints OK or errors. It makes no network calls.
+- `git status`, `git log` and `git diff --stat` (read-only) so help-me-catch-up can report the real state of your work.
 - `date` to verify dates you enter match actual weekdays.
 - `ls docs/adr` to find the next ADR file number.
 - help-me-test writes its report to `docs/test-reports/<version>.md`, or where you say.

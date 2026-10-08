@@ -1,0 +1,222 @@
+<title>{{TITLE}}</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700;800&family=Atkinson+Hyperlegible:wght@400;700&family=JetBrains+Mono:wght@500&display=swap">
+<style>
+/* Layout: where you are, what happened, where things stand, then 2 or 3 ways forward. One column, read-only. Tokens first, both themes. */
+:root{
+  --ground:#F2F4F1; --card:#FFFFFF; --ink:#1B2320; --muted:#5A6661; --line:#D3DAD5; --soft:#E8EDE9;
+  --teal:#0E6E78; --teal-soft:#D8ECEE;
+  --ok:#1F7A4D; --ok-soft:#DCF0E4; --bad:#B3261E; --bad-soft:#F9DEDC; --chg:#A8620E; --chg-soft:#F8E9D2; --open:#5A4FB0; --open-soft:#E6E3F7;
+  --display:"Sora",system-ui,sans-serif; --body:"Atkinson Hyperlegible",system-ui,sans-serif; --mono:"JetBrains Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --ground:#111715; --card:#18201D; --ink:#E4EBE7; --muted:#9BA8A2; --line:#2B3631; --soft:#1F2825;
+    --teal:#6CC3CC; --teal-soft:#15333A;
+    --ok:#66C995; --ok-soft:#163223; --bad:#F2918A; --bad-soft:#3A1715; --chg:#E6AE5C; --chg-soft:#35270F; --open:#AFA6EE; --open-soft:#26223F;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --ground:#111715; --card:#18201D; --ink:#E4EBE7; --muted:#9BA8A2; --line:#2B3631; --soft:#1F2825;
+  --teal:#6CC3CC; --teal-soft:#15333A;
+  --ok:#66C995; --ok-soft:#163223; --bad:#F2918A; --bad-soft:#3A1715; --chg:#E6AE5C; --chg-soft:#35270F; --open:#AFA6EE; --open-soft:#26223F;
+}
+*{box-sizing:border-box}
+body{background:var(--ground);color:var(--ink);font:17px/1.5 var(--body);padding-inline:16px;padding-block:28px 64px;margin:0}
+.wrap{max-width:860px;margin:0 auto;display:grid;gap:36px}
+h1,h2,h3{font-family:var(--display);margin:0;text-wrap:balance;letter-spacing:-.01em}
+h1{font-size:clamp(28px,5vw,42px);font-weight:800;line-height:1.1}
+h2{font-size:clamp(21px,3vw,26px);font-weight:700}
+h3{font-size:18px;font-weight:700}
+p{margin:0;max-width:66ch}
+code{font-family:var(--mono);font-size:.88em;background:var(--soft);border-radius:5px;padding:1px 5px;overflow-wrap:anywhere}
+.eyebrow{font:700 12px/1.3 var(--body);letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.lede{font-size:19px}
+.src{color:var(--muted);font-size:14px}
+section{display:grid;gap:14px}
+.now{background:var(--teal-soft);border:2px solid var(--teal);border-radius:14px;padding:14px 16px;display:grid;gap:8px}
+.now p{max-width:none}
+.story{list-style:none;margin:0;padding:0;display:grid;gap:0;border-left:3px solid var(--line);margin-left:6px}
+.story li{position:relative;padding:2px 0 16px 20px;display:grid;gap:2px}
+.story li::before{content:"";position:absolute;left:-9px;top:8px;width:15px;height:15px;border-radius:50%;background:var(--card);border:3px solid var(--teal)}
+.story li:last-child{padding-bottom:2px}
+.story .when{font:700 12px/1.3 var(--body);letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.state{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px}
+.col{background:var(--card);border:1px solid var(--line);border-top-width:5px;border-radius:12px;padding:12px 14px;display:grid;gap:8px;align-content:start;min-width:0}
+.col.k-done{border-top-color:var(--ok)} .col.k-doing{border-top-color:var(--chg)} .col.k-open{border-top-color:var(--open)} .col.k-blocked{border-top-color:var(--bad)}
+.col h3{font-size:16px}
+.col ul{margin:0;padding-left:20px;display:grid;gap:6px}
+.col .none{color:var(--muted);font-size:15px}
+.opts{display:grid;gap:14px}
+.opt{background:var(--card);border:1.5px solid var(--line);border-radius:14px;padding:14px 16px;display:grid;gap:10px;min-width:0}
+.opt.rec{border-color:var(--teal);box-shadow:0 0 0 2px var(--teal-soft)}
+.ohead{display:flex;flex-wrap:wrap;gap:8px 10px;align-items:center}
+.letter{font:800 13px/1 var(--display);letter-spacing:.08em;color:var(--open)}
+.tag{font:700 12px/1 var(--body);padding:5px 10px;border-radius:999px;background:var(--teal-soft);color:var(--teal)}
+.cost{font-size:14px;color:var(--muted);margin-left:auto}
+.opt .why{max-width:none}
+.first{font-size:15px;border-radius:8px;padding:8px 10px;background:var(--soft)}
+.prompt{font:13px/1.5 var(--mono);background:var(--soft);border-radius:8px;padding:10px 12px;margin:0;white-space:pre-wrap;overflow-wrap:anywhere}
+.pbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.btn{font:700 15px/1 var(--body);background:var(--teal);color:var(--card);border:0;border-radius:10px;padding:10px 14px;cursor:pointer;min-height:40px}
+.btn:hover{filter:brightness(1.08)}
+.copied{font-size:14px;font-weight:700;color:var(--ok)}
+.copied.err{color:var(--chg)}
+.copied:empty{display:none}
+.caveat{background:var(--chg-soft);color:var(--ink);border-radius:12px;padding:12px 16px;font-size:15px}
+.caveat ul{margin:6px 0 0;padding-left:20px;display:grid;gap:4px}
+.caveat b{color:var(--chg)}
+:focus-visible{outline:3px solid var(--teal);outline-offset:2px}
+footer{color:var(--muted);font-size:14px}
+</style>
+
+<div class="wrap">
+
+<header style="display:grid;gap:12px">
+  <span class="eyebrow">{{EYEBROW}}</span>
+  <h1>{{TITLE}}</h1>
+  <p class="lede">{{LEDE}}</p>
+  <span class="src">{{SOURCE_LINE}}</span>
+</header>
+
+<section aria-labelledby="h-now">
+  <h2 id="h-now">Where things stand</h2>
+  <div class="now" id="now"></div>
+</section>
+
+<section aria-labelledby="h-story">
+  <h2 id="h-story">How you got here</h2>
+  <ol class="story" id="story"></ol>
+</section>
+
+<section aria-labelledby="h-state">
+  <h2 id="h-state">Done, in flight, open</h2>
+  <div class="state" id="state"></div>
+</section>
+
+<section aria-labelledby="h-opts">
+  <h2 id="h-opts">Ways to carry on</h2>
+  <div class="opts" id="opts"></div>
+</section>
+
+<section id="caveats" hidden>
+  <div class="caveat" id="caveatbox"></div>
+</section>
+
+<footer>Made by the help-me-catch-up skill from LazyTools. A recap is a draft: check anything you are about to act on.</footer>
+
+</div>
+
+<script>
+(function(){
+  /* Text in these arrays may use `code` and **bold**. Nothing else is rendered as markup. */
+
+  /* NOW: where things stand, 1 to 3 short paragraphs. Each is a string. */
+  var NOW=[
+    'EXAMPLE: One plain sentence on where the work is right now.'
+  ];
+
+  /* STORY: what happened, oldest first. {when?, t}. 4 to 8 entries. when = a short time or phase label. */
+  var STORY=[
+    {when:'EXAMPLE: Start',t:'What you set out to do.'}
+  ];
+
+  /* STATE: lists by kind. {kind, items:[strings]}. kind = done, doing, open or blocked. Leave a kind out if it has nothing. */
+  var STATE=[
+    {kind:'done',items:['EXAMPLE: Something finished and checked.']}
+  ];
+
+  /* OPTIONS: 2 or 3 ways to carry on. id = a, b or c. rec:1 on exactly one. cost = rough size, e.g. "about 10 minutes".
+     why = when this is the right pick. first = the first concrete step. prompt = text to paste back as the next message. */
+  var OPTIONS=[
+    {id:'a',rec:1,title:'EXAMPLE: Finish the open item',cost:'small',
+     why:'Why this is the best next move.',
+     first:'The first thing Claude would do.',
+     prompt:'Carry on with the open item.'}
+  ];
+
+  /* CAVEATS: what the recap could not check, or guessed. Plain strings. May be empty. */
+  var CAVEATS=[
+  ];
+
+  var KINDS={done:'Done',doing:'In flight',open:'Still open',blocked:'Blocked'};
+
+  function el(tag,cls,text){var e=document.createElement(tag);if(cls)e.className=cls;if(text!=null)e.textContent=text;return e;}
+  /* Render `code` and **bold** as elements. Everything else is plain text. */
+  function rich(parent,s){
+    String(s).split(/(\*\*[^*]+\*\*|`[^`]+`)/).forEach(function(part){
+      if(!part)return;
+      if(part.slice(0,2)==='**'&&part.slice(-2)==='**')parent.appendChild(el('strong',null,part.slice(2,-2)));
+      else if(part[0]==='`'&&part.slice(-1)==='`')parent.appendChild(el('code',null,part.slice(1,-1)));
+      else parent.appendChild(document.createTextNode(part));
+    });
+    return parent;
+  }
+
+  var now=document.getElementById('now');
+  NOW.forEach(function(s){now.appendChild(rich(el('p'),s));});
+
+  var story=document.getElementById('story');
+  STORY.forEach(function(s){
+    var li=el('li');
+    if(s.when)li.appendChild(el('span','when',s.when));
+    li.appendChild(rich(el('span'),s.t));
+    story.appendChild(li);
+  });
+
+  var state=document.getElementById('state');
+  STATE.forEach(function(g){
+    var c=el('div','col k-'+g.kind);
+    c.appendChild(el('h3',null,KINDS[g.kind]||g.kind));
+    var ul=el('ul');
+    g.items.forEach(function(t){ul.appendChild(rich(el('li'),t));});
+    c.appendChild(ul);
+    state.appendChild(c);
+  });
+
+  function copy(text,note){
+    function ok(){note.className='copied';note.textContent='Copied. Paste it as your next message.';}
+    function fail(){note.className='copied err';note.textContent='Could not copy here. Select the text above and copy it.';}
+    try{
+      if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(text).then(ok,fail);return;}
+    }catch(e){}
+    fail();
+  }
+
+  var opts=document.getElementById('opts');
+  OPTIONS.forEach(function(o){
+    var card=el('article','opt'+(o.rec?' rec':''));
+    card.id='opt-'+o.id;
+    var head=el('div','ohead');
+    head.appendChild(el('span','letter','OPTION '+String(o.id).toUpperCase()));
+    if(o.rec)head.appendChild(el('span','tag','Recommended'));
+    if(o.cost)head.appendChild(el('span','cost',o.cost));
+    card.appendChild(head);
+    card.appendChild(el('h3',null,o.title));
+    card.appendChild(rich(el('p','why'),o.why));
+    var first=el('div','first');first.appendChild(el('strong',null,'First step: '));rich(first,o.first);
+    card.appendChild(first);
+    card.appendChild(el('pre','prompt',o.prompt));
+    var bar=el('div','pbar');
+    var btn=el('button','btn','Copy this as my next message');
+    btn.type='button';btn.id='copy-'+o.id;
+    var note=el('span','copied');note.id='note-'+o.id;note.setAttribute('role','status');
+    btn.addEventListener('click',function(){copy(o.prompt,note);});
+    bar.appendChild(btn);bar.appendChild(note);
+    card.appendChild(bar);
+    opts.appendChild(card);
+  });
+
+  if(CAVEATS.length){
+    var box=document.getElementById('caveatbox');
+    box.appendChild(el('b',null,'Not checked'));
+    var ul=el('ul');
+    CAVEATS.forEach(function(t){ul.appendChild(rich(el('li'),t));});
+    box.appendChild(ul);
+    document.getElementById('caveats').hidden=false;
+  }
+})();
+</script>
