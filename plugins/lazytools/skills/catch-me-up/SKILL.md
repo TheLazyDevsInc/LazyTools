@@ -29,16 +29,18 @@ Do not interview the user. A recap is for someone in a hurry. Decide these yours
 1. **Gather facts. Do not rely on memory of the conversation alone.**
    - Re-read the conversation: the request, the decisions, the dead ends, the last thing done and what the user was told to expect next.
    - Check the real state of the work with read-only commands when there is a repo: `git status -sb`, `git log --oneline -10`, `git diff --stat`, the open PR and its CI result if there is one, and any task list in the session. Trust these over your memory. If they disagree with the conversation, say so in `CAVEATS`.
+   - **Check the local checkout is current.** Run `git fetch` first, then compare `HEAD` with its upstream (`git status -sb` shows ahead or behind; `git log HEAD..@{u} --oneline` lists what you are missing). If the checkout is behind, or the PR's head commit is not your `HEAD`, read the remote state (`git diff HEAD..@{u} --stat`, or the PR files) before you write anything, and say in `CAVEATS` that the checkout was behind. Never describe code as missing, or a PR description as wrong, from a stale checkout.
    - Do not run tests, builds or anything that changes files or sends data just to write a recap.
 2. **Write `NOW`.** One to three short paragraphs: what the work is, where it is right now, and the one thing that matters most. Lead with the answer to "where was I?".
 3. **Write `STORY`.** Four to eight entries, oldest first, each one plain sentence, with a short `when` label such as the phase or a time. Keep decisions and the reason for them ("chose X over Y because Z"), dead ends that would otherwise be tried again, and the moment the work was left. Drop the blow-by-blow.
 4. **Write `STATE`.** Lists by kind: `done` (finished and checked), `doing` (started, not finished), `open` (not started, or deferred on purpose), `blocked` (waiting on something, and on what). Leave a kind out if it is empty. Only call something `done` if you saw it pass or finish.
 5. **Write `OPTIONS`.** Two or three ways to carry on, ids `a`, `b`, `c`, exactly one with `rec:1`. They must be different in kind, not three sizes of the same thing: for example finish, check first, cut scope or switch to something else. Each has:
    - `title`: a short verb phrase.
-   - `cost`: a rough size in words ("about 20 minutes", "one command"). If you cannot tell, leave it out. Do not invent a number.
+   - `cost`: a rough size in words ("about 20 minutes", "one command"). If you cannot tell, leave it out. Do not invent a number, and do not inflate one to make an option look worse.
+   - Never recommend an option that undoes or rewrites work you have not confirmed is current. If the state is uncertain, the recommended option is to check it.
    - `why`: when this is the right pick, in one or two sentences.
    - `first`: the first concrete step.
-   - `prompt`: text the user can paste as their next message. Write it so it works in a fresh session too: name the branch, file or PR. Never include secrets or tokens.
+   - `prompt`: text the user can paste as their next message. It must be a complete instruction, never one that ends mid-sentence. Write it so it works in a fresh session too: name the branch, file or PR. Never include secrets or tokens.
    Recommend the option that gets the user to a checked, shippable state with the least risk. Say why in `why`.
 6. **Write `CAVEATS`.** What you could not check, guessed, or that disagrees with the conversation. Skip the array contents (leave it empty) when there is nothing.
 7. **Fill the template.**
