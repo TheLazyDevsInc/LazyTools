@@ -63,6 +63,12 @@ section{display:grid;gap:14px}
 .pbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
 .btn{font:700 15px/1 var(--body);background:var(--teal);color:var(--card);border:0;border-radius:10px;padding:10px 14px;cursor:pointer;min-height:40px}
 .btn:hover{filter:brightness(1.08)}
+.btn.ghost{background:var(--card);color:var(--teal);border:1.5px solid var(--teal)}
+.opt.picked{border-color:var(--ok);box-shadow:0 0 0 2px var(--ok-soft)}
+.opt.picked .tag.pk{background:var(--ok-soft);color:var(--ok)}
+.pickmsg{background:var(--ok-soft);color:var(--ok);border-radius:12px;padding:12px 16px;font-weight:700}
+.pickmsg.err{background:var(--chg-soft);color:var(--chg)}
+.pickmsg:empty{display:none}
 .copied{font-size:14px;font-weight:700;color:var(--ok)}
 .copied.err{color:var(--chg)}
 .copied:empty{display:none}
@@ -99,6 +105,8 @@ footer{color:var(--muted);font-size:14px}
 
 <section aria-labelledby="h-opts">
   <h2 id="h-opts">Ways to carry on</h2>
+  <p class="src" id="pickhint" hidden>Tap Pick this one, then type <code>go</code> back in your Claude session. Claude reads your pick and carries on.</p>
+  <div class="pickmsg" id="pickmsg" role="status"></div>
   <div class="opts" id="opts"></div>
 </section>
 
@@ -201,7 +209,11 @@ footer{color:var(--muted);font-size:14px}
     card.appendChild(first);
     card.appendChild(el('pre','prompt',o.prompt));
     var bar=el('div','pbar');
-    var btn=el('button','btn','Copy this as my next message');
+    var pk=el('button','btn','Pick this one');
+    pk.type='button';pk.id='pick-'+o.id;pk.hidden=true;
+    pk.addEventListener('click',function(){pick(o);});
+    bar.appendChild(pk);
+    var btn=el('button','btn ghost','Copy this as my next message');
     btn.type='button';btn.id='copy-'+o.id;
     var note=el('span','copied');note.id='note-'+o.id;note.setAttribute('role','status');
     btn.addEventListener('click',function(){copy(o.prompt,note);});
@@ -209,6 +221,39 @@ footer{color:var(--muted);font-size:14px}
     card.appendChild(bar);
     opts.appendChild(card);
   });
+
+  /* Picking saves one doc, picks/<viewer id>, that Claude reads back when the viewer types "go". No db: only Copy shows. */
+  var db=null,uid=null,msg=document.getElementById('pickmsg');
+  function say(t,err){msg.className='pickmsg'+(err?' err':'');msg.textContent=t;}
+  function mark(id){
+    OPTIONS.forEach(function(o){
+      var card=document.getElementById('opt-'+o.id),old=card.querySelector('.tag.pk');
+      if(old)old.remove();
+      card.classList.toggle('picked',o.id===id);
+      if(o.id===id)card.querySelector('.ohead').insertBefore(el('span','tag pk','Your pick'),card.querySelector('.cost'));
+      document.getElementById('pick-'+o.id).textContent=o.id===id?'Picked':'Pick this one';
+    });
+  }
+  async function pick(o){
+    if(!db||!uid)return;
+    try{
+      await db.doc('picks/'+uid).set({option:o.id,title:o.title,prompt:o.prompt,at:new Date().toISOString()});
+      mark(o.id);
+      say('Saved: option '+String(o.id).toUpperCase()+'. Now type "go" in your Claude session.');
+    }catch(e){say('Could not save your pick. Use Copy instead.',true);}
+  }
+  (async function(){
+    try{
+      if(!window.claude||!claude.use)return;
+      var user=await claude.use('user');db=await claude.use('db');
+      if(!user||!db||!user.id)return;
+      uid=await user.id();
+      if(user.can){try{if((await user.can('data.write'))===false)return;}catch(e){}}
+      OPTIONS.forEach(function(o){document.getElementById('pick-'+o.id).hidden=false;});
+      document.getElementById('pickhint').hidden=false;
+      try{var snap=await db.doc('picks/'+uid).get();var d=snap&&snap.exists&&snap.data();if(d&&d.option){mark(d.option);say('Your pick is saved: option '+String(d.option).toUpperCase()+'. Type "go" in your Claude session.');}}catch(e){}
+    }catch(e){db=null;}
+  })();
 
   if(CAVEATS.length){
     var box=document.getElementById('caveatbox');

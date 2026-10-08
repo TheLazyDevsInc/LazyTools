@@ -89,11 +89,11 @@ Requirements are the same as help-me-decide. Share the page with reviewers as Co
 
 ## catch-me-up
 
-One job. When you switch back to a task and say "catch me up", it reads the session (and the real state of the repo: `git status`, recent commits, the open PR) and publishes a one-minute recap as a claude.ai Artifact: where things stand, how you got here, what is done, in flight, open or blocked, and 2 or 3 ways to carry on with one recommended. Each way has a first step and a prompt you copy as your next message. It does not start any of them for you.
+One job. When you switch back to a task and say "catch me up", it reads the session (and the real state of the repo: `git status`, recent commits, the open PR) and publishes a one-minute recap as a claude.ai Artifact: where things stand, how you got here, what is done, in flight, open or blocked, and 2 or 3 ways to carry on with one recommended. Each way has a first step and a prompt. Tap **Pick this one**, then type `go` in your Claude session, and Claude reads your pick back and carries on. Copy is still there if you would rather paste. Nothing starts until you pick.
 
 Ask Claude in plain words, for example: "catch me up" or "recap the billing work". Or run `/lazytools:catch-me-up`.
 
-The page is read-only. It saves nothing, needs no database and no sharing settings, so Viewer access is enough for anyone you send it to.
+Picking needs the signed-in owner (or a Contributor or Editor). Anyone else who opens the page can read it and use Copy. Requirements are the same as help-me-decide.
 
 | Path | What |
 |---|---|
@@ -112,7 +112,7 @@ What the plugin stores, and where:
 - **Review verdicts and change log (help-me-review).** The page saves each reviewer's verdicts in one record per person, and a per-person change log, in the artifact's own database. Each verdict holds the reviewer's profile id, the status, any note they typed, and a time. Which areas a reviewer ticked is kept only in their own browser. The page shows code references (file and line) from the PR, not code.
 - **Who can see it.** Everyone who can open the artifact can read the answers and the log. Anyone with Editor access to the artifact can change them, so the log is a record, not tamper-proof. Do not put secrets, phone numbers or email addresses on the page.
 - **The ADR, the test report and the review summary.** The ADR names the people who answered. The test report names the testers and quotes their notes. The review summary names the reviewers and quotes their notes. Both are files in your repository.
-- **Recap (catch-me-up).** The page holds a summary of your session as text, and nothing is saved from it. It can name branches, files and PR numbers, so share it with care. The skill never puts secrets on it.
+- **Recap and pick (catch-me-up).** The page holds a summary of your session as text. It can name branches, files and PR numbers, so share it with care. The skill never puts secrets on it. A pick saves your profile id, the chosen option, its prompt text and a time in the artifact's own database.
 - **No service of ours.** The plugin has no server and no analytics. The plugin authors do not receive or keep any data.
 
 Data that leaves claude.ai:
