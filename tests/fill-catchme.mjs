@@ -1,8 +1,8 @@
 import fs from 'node:fs';
 import { fileURLToPath } from 'node:url';
 
-// Fills the help-me-catch-up template with examples/sample-recap.md, the way the skill fills it.
-export const skillDir = fileURLToPath(new URL('../plugins/lazytools/skills/help-me-catch-up/', import.meta.url));
+// Fills the catch-me-up template with examples/sample-recap.md, the way the skill fills it.
+export const skillDir = fileURLToPath(new URL('../plugins/lazytools/skills/catch-me-up/', import.meta.url));
 export const templatePath = skillDir + 'template.html';
 
 const NAMES = ['NOW', 'STORY', 'STATE', 'OPTIONS', 'CAVEATS'];

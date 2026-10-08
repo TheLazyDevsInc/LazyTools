@@ -2,7 +2,7 @@
   "name": "lazytools",
   "displayName": "LazyTools",
   "version": "0.6.0",
-  "description": "LazyTools by The LazyDevs Inc.: small skills for Claude Code. help-me-decide turns open decisions into a multiple-choice page and the answers into an ADR. help-me-test turns a release into a tester checklist page and the results into a test report. help-me-review turns a pull request into a review checklist page and the verdicts into a review summary. help-me-catch-up turns your current session into a one-minute recap page with 2 or 3 ways to carry on. Requires Claude Code with Artifacts.",
+  "description": "LazyTools by The LazyDevs Inc.: small skills for Claude Code. help-me-decide turns open decisions into a multiple-choice page and the answers into an ADR. help-me-test turns a release into a tester checklist page and the results into a test report. help-me-review turns a pull request into a review checklist page and the verdicts into a review summary. catch-me-up turns your current session into a one-minute recap page with 2 or 3 ways to carry on. Requires Claude Code with Artifacts.",
   "author": {
     "name": "TheLazyIndianTechie",
     "email": "hello@thelazydevs.com",

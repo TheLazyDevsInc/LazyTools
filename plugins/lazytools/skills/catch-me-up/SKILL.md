@@ -1,9 +1,9 @@
 ---
-name: help-me-catch-up
+name: catch-me-up
 description: Turn the current conversation or session into a short recap Artifact with how you got here, where things stand and 2 or 3 ways to carry on, each with a prompt you can paste. Use when the user says "catch me up", "where were we", "recap this", "what was I doing" or comes back to a task after switching away.
 ---
 
-# Help me catch up: session to recap page
+# Catch me up: session to recap page
 
 One phase. Read what happened in this session, then publish a short recap as an Artifact: how we got here, where things stand, and 2 or 3 ways to carry on. The reader is one person coming back to a task cold. The page is read-only and saves nothing.
 
